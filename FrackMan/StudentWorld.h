@@ -4,29 +4,52 @@
 #include "GameWorld.h"
 #include "GameConstants.h"
 #include <string>
-#include <cmath>
 #include <vector>
 #include "Actor.h"
 
 
 class StudentWorld : public GameWorld {
 public:
-    StudentWorld(std::string assetDir) : GameWorld(assetDir) {}
+	StudentWorld(std::string assetDir) : GameWorld(assetDir) { }
 	virtual ~StudentWorld() {}
 
 	virtual int init();
 	virtual int move();
 	virtual void cleanUp();
 
+	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
+	FrackMan* getFrackMan() { return frackman; }
+	bool collides(GraphObject *ob1, GraphObject *ob2);
+
 private:
 	std::vector<Actor*> actors; //Vector of actors
 	FrackMan* frackman; //Player pointer
 	Dirt *dirt[VIEW_WIDTH][VIEW_HEIGHT]; //Array of dirt
+	int ticks, nProtesters, nOilBarrels;
 
-	enum ActorType {boulder, oilBarrel, goldNugget};
-
-	//function for distributing nuggets, oil, and boulders
+	enum ActorType { boulder, oilBarrel, goldNugget };
+	//function for distributing nuggets, oil, and boulders. ONLY USED IN INIT
 	void addInitialActor(ActorType actorType);
+
+
+	//pads text to targetLength with spaces
+	std::string widenText(std::string ret, int targetLength) {
+		while (ret.length() < targetLength) ret = ' ' + ret;
+		return ret;
+	}
+	//functions for stat text
+	std::string getScoreText() {
+		std::string ret = std::to_string(getScore());
+		while (ret.length() < 6) ret += '0'; ///DEBUGGING
+		return ret;
+	}
+	std::string getLevelText() { return widenText(std::to_string(getLevel()), 2); }
+	std::string getLivesText() { return std::to_string(getLives()); }
+	std::string getHealthText() { return widenText(std::to_string(frackman->getHealth()*10), 3) + "%"; }
+	std::string getWaterText() { return widenText(std::to_string(frackman->getWater()), 2); }
+	std::string getGoldText() { return widenText(std::to_string(frackman->getGold()), 2); }
+	std::string getSonarText() { return widenText(std::to_string(frackman->getSonar()), 2); }
+	std::string getOilLeftText() { return widenText(std::to_string(nOilBarrels), 2); }
 };
 
 #endif // STUDENTWORLD_H_
