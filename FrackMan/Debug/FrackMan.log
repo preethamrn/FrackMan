@@ -1,15 +1,10 @@
-﻿Build started 2/14/2016 11:27:40 PM.
+﻿Build started 2/15/2016 1:59:24 AM.
      1>Project "E:\UCLA\CS32\Project 3\FrackMan\FrackMan.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /IirrKlang /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D GLUT_BUILDING_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Actor.cpp StudentWorld.cpp
-         StudentWorld.cpp
-     1>e:\ucla\cs32\project 3\frackman\studentworld.h(37): warning C4018: '<': signed/unsigned mismatch
-     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(79): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(96): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(155): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /IirrKlang /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D GLUT_BUILDING_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Actor.cpp
          Actor.cpp
-     1>e:\ucla\cs32\project 3\frackman\studentworld.h(37): warning C4018: '<': signed/unsigned mismatch
-         Generating Code...
+     1>e:\ucla\cs32\project 3\frackman\studentworld.h(43): warning C4018: '<': signed/unsigned mismatch
+     1>e:\ucla\cs32\project 3\frackman\actor.cpp(146): warning C4018: '<': signed/unsigned mismatch
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\UCLA\CS32\Project 3\Debug\FrackMan.exe" /INCREMENTAL /NOLOGO /LIBPATH:"C:\Program Files (x86)\Visual Leak Detector\lib\Win32" freeglut.lib dsound.lib winmm.lib opengl32.lib glu32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"E:\UCLA\CS32\Project 3\Debug\FrackMan.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\UCLA\CS32\Project 3\Debug\FrackMan.lib" /MACHINE:X86 Debug\Actor.obj
          Debug\GameController.obj
@@ -21,4 +16,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:02.07
+Time Elapsed 00:00:02.21

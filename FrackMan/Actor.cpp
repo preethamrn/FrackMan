@@ -16,14 +16,14 @@ int Boulder::doSomething() {
 }
 
 //GoldNugget functions
-GoldNugget::GoldNugget(int x, int y, bool isVisible, bool isPlayerPickable, bool isPermanent, StudentWorld *sw) : Actor(IID_GOLD, x, y, right, 1.0, 2, sw) {}
+GoldNugget::GoldNugget(int x, int y, bool isVisible, bool isPlayerPickable, bool isPermanent, StudentWorld *sw) : Actor(IID_GOLD, x, y, right, 1.0, 2, sw) { setVisible(true); }
 int GoldNugget::doSomething() {
 	return CONTINUE;
 }
-
+///DEBUGGING //nuggets and barrels should be invisible
 
 //OilBarrel functions
-OilBarrel::OilBarrel(int x, int y, StudentWorld *sw) : Actor(IID_BARREL, x, y, right, 1.0, 2, sw) {}
+OilBarrel::OilBarrel(int x, int y, StudentWorld *sw) : Actor(IID_BARREL, x, y, right, 1.0, 2, sw) { setVisible(true); }
 int OilBarrel::doSomething() {
 	return CONTINUE;
 }
@@ -81,17 +81,85 @@ FrackMan::FrackMan(StudentWorld *sw) : GraphObject(IID_PLAYER, 30, 60, right, 1.
 }
 int FrackMan::doSomething() {
 	int ch;
+	int originalX = getX(), originalY = getY();
 	if (sWorld->getKey(ch)) {
 		switch (ch) {
-		case KEY_PRESS_DOWN: break;
-		case KEY_PRESS_LEFT: break;
-		case KEY_PRESS_RIGHT: break;
-		case KEY_PRESS_UP: break;
-		case KEY_PRESS_TAB: break;
-		case KEY_PRESS_SPACE: break;
+		case KEY_PRESS_UP: 
+			if (getDirection() == up) moveTo(getX(), getY() + 1); 
+			else setDirection(up); break;
+		case KEY_PRESS_DOWN: 
+			if (getDirection() == down) moveTo(getX(), getY() - 1); 
+			else setDirection(down); break;
+		case KEY_PRESS_RIGHT: 
+			if (getDirection() == right) moveTo(getX() + 1, getY()); 
+			else setDirection(right); break;
+		case KEY_PRESS_LEFT: 
+			if (getDirection() == left) moveTo(getX() - 1, getY()); 
+			else setDirection(left); break;
+		case KEY_PRESS_TAB: 
+			if (gold > 0) {
+				gold--;
+				sWorld->useGold();
+			}
+			break;
+		case KEY_PRESS_SPACE: 
+			if (water > 0) {
+				water--;
+				sWorld->useWater();
+			}
+			break;
+		case 'z':
+			if (sonar > 0) {
+				sonar--;
+				sWorld->useSonar();
+			}
+			break;
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: break;
 		}
+
+		//check if collided with edges
+		if (getX() < 0 || getY() < 0 || getX() > VIEW_WIDTH - 4 * getSize() || getY() > VIEW_HEIGHT - 4 * getSize()) moveTo(originalX, originalY);
+		//check if collided with dirt
+		bool removedDirt = false;
+		for (int i = getX(); i < getX() + 4; i++) {
+			for (int j = getY(); j < getY() + 4; j++) {
+				if (sWorld->isDirt(i, j)) {
+					sWorld->removeDirt(i, j);
+					removedDirt = true;
+				}
+			}
+		}
+		if (removedDirt) sWorld->playSound(SOUND_DIG);
+
+		//check if collided with actors
+		std::vector<Actor*> *actors = sWorld->getActors();
+		for (std::vector<Actor*>::const_iterator it = actors->begin(); it != actors->end(); it++) {
+			//check boulders first
+			if (dynamic_cast<Boulder*>(*it)) {
+				if (sWorld->collides(*it, this)) {
+					moveTo(originalX, originalY);
+					break;
+				}
+			}
+		}
+
+		///DO ALL THIS STUFF IN THE OTHER DO SOMETHING FUNCTIONS
+		///for barrels of oil, struckOil == true when level is won
+		/*
+		for (int i = 0; i < actors->size(); i++) {
+			if (sWorld->collides((*actors)[i], this)) {
+				Actor *actor = (*actors)[i];
+				if (dynamic_cast<OilBarrel*>(actor)) { sWorld->struckOil(); delete actor; actors->erase(actors->begin() + i); i--; }
+				else if (dynamic_cast<WaterPool*>(actor)) { }
+				else if (dynamic_cast<SonarKit*>(actor)) { }
+				else if (dynamic_cast<Protester*>(actor)) { } //do the protesters do different things??? ///DEBUGGING
+				else if (dynamic_cast<GoldNugget*>(actor)) { }
+			}
+		}
+		*/
+		//check collisions now and destroy dirt, get goodies, hit protesters, boulders, etc (and move back if the position is solid/edge).
 	}
-	return Actor::CONTINUE;
+	if(health > 0) return Actor::CONTINUE;
+	else return Actor::PLAYER_DIED;
 }

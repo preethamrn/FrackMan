@@ -34,15 +34,15 @@ int StudentWorld::init() {
 
 int StudentWorld::move() {
 	//display stat text at top of screen
-	/*setGameStatText("Scr: " + getScoreText() + 
+	setGameStatText("Scr: " + getScoreText() + 
 		"  Lvl: " + getLevelText() + 
 		"  Lives: " + getLivesText() + 
 		"  Hlth: " + getHealthText() + 
 		"  Wtr: " + getWaterText() + 
 		"  Gld: " + getGoldText() + 
 		"  Sonar: " + getSonarText() + 
-		"  Oil Left: " + getOilLeftText());*/
-	setGameStatText(std::to_string(ticks)); ///DEBUGGING
+		"  Oil Left: " + getOilLeftText());
+	//setGameStatText(std::to_string(ticks)); ///DEBUGGING
 	
 	if (frackman->doSomething() == Actor::PLAYER_DIED) {
 		decLives();
@@ -117,23 +117,47 @@ void StudentWorld::cleanUp() {
 	delete frackman;
 }
 
+void StudentWorld::useSonar() {
+	playSound(SOUND_SONAR);
+}
+
+void StudentWorld::useWater() {
+	playSound(SOUND_PLAYER_SQUIRT);
+}
+
+void StudentWorld::useGold() {
+
+}
+
+//constant time collision detection for square objects of side d1, d2
+//return true when one graph object is inside the other
+///DEBUGGING //function needs fixing for boulder collision
+bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2) {
+	int d1 = 4 * ob1->getSize(), d2 = 4 * ob2->getSize();
+	if (ob1->getX() + d1 > ob2->getX() && ob1->getX() <= ob2->getX() || ob2->getX() + d2 > ob1->getX() && ob2->getX() <= ob1->getX())
+		if (ob1->getY() + d1 > ob2->getY() && ob1->getY() <= ob2->getY() || ob2->getY() + d2 > ob1->getY() && ob2->getY() <= ob1->getY())
+			return true;
+	return false;
+}
+
 
 void StudentWorld::addInitialActor(ActorType actorType) {
 	int x, y;
-	double dist = 1000;
+	double dist;
 	//find a good x, y
 	do {
+		dist = 1000.0;
 		x = rand() % 61;
 		y = (rand() % 37) + 20;
-		if(y >= 4 && x >= 27 && x <= 33) continue; //check if inside mineshaft ///DEBUGGING (boulders spawn inside too?)
-		
 		for (std::vector<Actor*>::const_iterator it = actors.begin(); it != actors.end(); it++) {
 			Actor *a = *it;
 			int dx = x - a->getX();
 			int dy = y - a->getY();
-			dist = sqrt(dx*dx + dy*dy);
+			dist = fmin(sqrt(dx*dx + dy*dy), dist);
 		}
-	} while (dist <= 6.0);
+	} while (dist <= 6.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft ///DEBUGGING (boulders spawn inside too?)
+
+	//create appropriate actor
 	Actor *actor;
 	if (actorType == boulder) {
 		actor = new Boulder(x, y, this);
@@ -146,15 +170,5 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 	}
 	else if (actorType == oilBarrel) actor = new OilBarrel(x, y, this);
 	else if (actorType == goldNugget) actor = new GoldNugget(x, y, false, true, true, this);
-	actors.push_back(actor);
-}
-
-//constant time collision detection for square objects of side d1, d2
-//return true when one graph object is inside the other
-bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2) {
-	int d1 = 4 * ob1->getSize(), d2 = 4 * ob2->getSize();
-	if (ob1->getX() + d1 > ob2->getX() && ob1->getX() <= ob2->getX() || ob2->getX() + d2 > ob1->getX() && ob2->getX() <= ob1->getX())
-		if (ob1->getY() + d1 > ob2->getY() && ob1->getY() <= ob2->getY() || ob2->getY() + d2 > ob1->getY() && ob2->getY() <= ob1->getY())
-			return true;
-	return false;
+	actors.push_back(actor); //add actor to list of actors
 }

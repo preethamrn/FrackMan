@@ -18,7 +18,13 @@ public:
 	virtual void cleanUp();
 
 	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
+	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
+	bool struckOil() { playSound(SOUND_FOUND_OIL); nOilBarrels--; return nOilBarrels == 0; }
+	void useSonar();
+	void useWater();
+	void useGold();
 	FrackMan* getFrackMan() { return frackman; }
+	std::vector<Actor*>* getActors() { return &actors; }
 	bool collides(GraphObject *ob1, GraphObject *ob2);
 
 private:
