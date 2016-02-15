@@ -18,41 +18,38 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Actor.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="freeglut.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="freeglut_ext.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="freeglut_std.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="GameConstants.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="GameController.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="GameWorld.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="GraphObject.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundFX.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteManager.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="StudentWorld.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="Dirt.h">
-      <Filter>Header</Filter>
+    <ClInclude Include="Actor.h">
+      <Filter>Header\GraphObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphObject.h">
+      <Filter>Header\GraphObjects</Filter>
+    </ClInclude>
+    <ClInclude Include="freeglut.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="freeglut_ext.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="freeglut_std.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameConstants.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameController.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundFX.h">
+      <Filter>Header\BackgroundControllers</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteManager.h">
+      <Filter>Header\BackgroundControllers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +58,12 @@
     </Filter>
     <Filter Include="Header">
       <UniqueIdentifier>{3f41285d-a50d-4e52-9c92-352c4c8281fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\GraphObjects">
+      <UniqueIdentifier>{faf8e291-2c94-4dbc-8f17-422fe33ce922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header\BackgroundControllers">
+      <UniqueIdentifier>{720c7e9e-452c-44fa-bbc5-414ee960c935}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
