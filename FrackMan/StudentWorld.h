@@ -26,8 +26,13 @@ public:
 	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
 	bool struckOil() { playSound(SOUND_FOUND_OIL); increaseScore(1000); nOilBarrels--; return nOilBarrels == 0; }
 	FrackMan* getFrackMan() { return frackman; }
-	std::vector<Actor*>* getActors() { return &actors; }
+	//std::vector<Actor*>* getActors() { return &actors; }
 	bool collides(GraphObject *ob1, GraphObject *ob2, double radius);
+
+	int boulderCollisions(Boulder *b);
+	int goldNuggetCollisions(GoldNugget *gn);
+	int squirtCollisions(Squirt *s);
+	void frackmanCollisions(FrackMan *f, int ox, int oy);
 
 private:
 	std::vector<Actor*> actors; //Vector of actors

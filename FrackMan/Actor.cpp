@@ -33,18 +33,7 @@ int Boulder::doSomething() {
 		for (int i = 0; i < 4; i++) {
 			if (sWorld->isDirt(getX() + i, getY())) return SELF_DIED; //hit dirt
 		}
-		//when falling, check if it hits a player (PLAYER_DIED), protester (set protester to annoyed), dirt/another boulder (SELF_DIED)
-		if (sWorld->collides(this, sWorld->getFrackMan(), 3.0)) return PLAYER_DIED;
-		std::vector<Actor*> *actors = sWorld->getActors();
-		for (int i = 0; i < actors->size(); i++) {
-			if (sWorld->collides(this, (*actors)[i], 3.0)) {
-				if (dynamic_cast<Boulder*>((*actors)[i])) return SELF_DIED; //hit a boulder
-				else if (dynamic_cast<Protester*>((*actors)[i])) {
-					dynamic_cast<Protester*>((*actors)[i])->setGiveUp(); //hit a protester
-					sWorld->increaseScore(500);
-				}
-			}
-		}
+		return sWorld->boulderCollisions(this);
 	}
 	return CONTINUE;
 }
@@ -67,26 +56,9 @@ int GoldNugget::doSomething() {
 			return SELF_DIED;
 		}
 	}
-	//check if collided with a protester
 	else if (state == temporary) {
-		std::vector<Actor*> *actors = sWorld->getActors();
-		for (int i = 0; i < actors->size(); i++) {
-			if (sWorld->collides(this, (*actors)[i], 3.0)) {
-				Protester *p = dynamic_cast<Protester*>((*actors)[i]);
-				if (p != nullptr) {
-					sWorld->playSound(SOUND_PROTESTER_FOUND_GOLD);
-					if (dynamic_cast<RegularProtester*>(p)) {
-						p->setGiveUp();
-						sWorld->increaseScore(25);
-					} else if (dynamic_cast<HardcoreProtester*>(p)) { 
-						p->setAnnoyed(15); ///DEBUGGING. should be setStaring or something...
-						sWorld->increaseScore(50);
-					}
-					return SELF_DIED;
-				}
-			}
-		}
-		ticks--;
+		ticks--; //count down ticks
+		return sWorld->goldNuggetCollisions(this); //check if collided with a protester
 	}
 	return CONTINUE;
 }
@@ -116,22 +88,7 @@ int Squirt::doSomething() {
 		for (int j = getY(); j < getY() + 4; j++)
 			if (sWorld->isDirt(i, j)) return SELF_DIED;
 	//check boulder/other collisions
-	std::vector<Actor*> *actors = sWorld->getActors();
-	bool dead = false;
-	for (int i = 0; i < actors->size(); i++) {
-		Actor *actor = (*actors)[i];
-		if (sWorld->collides(this, actor, 3.0)) {
-			if (dynamic_cast<Boulder*>(actor)) return SELF_DIED;
-			Protester *p = dynamic_cast<Protester*>(actor);
-			if (p != nullptr) {
-				if (p->setAnnoyed(15)) { ///DEBUGGING
-					dead = true;
-					p->decHealth(2);
-				}
-			}
-		}
-	}
-	if (dead) return SELF_DIED;
+	if (sWorld->squirtCollisions(this) == SELF_DIED) return SELF_DIED;
 	
 	//go through all protester collisions before deciding whether to kill the squirt
 	Direction dir = getDirection();
@@ -286,23 +243,8 @@ int FrackMan::doSomething() {
 
 		//check if collided with edges
 		if (getX() < 0 || getY() < 0 || getX() > VIEW_WIDTH - 4 * getSize() || getY() > VIEW_HEIGHT - 4 * getSize()) moveTo(originalX, originalY);
-		//check if collided with boulders
-		std::vector<Actor*> *actors = sWorld->getActors();
-		for (std::vector<Actor*>::const_iterator it = actors->begin(); it != actors->end(); it++) {
-			//check boulders first
-			if (dynamic_cast<Boulder*>(*it)) {
-				if (sWorld->collides(*it, this, 3.0)) {
-					moveTo(originalX, originalY);
-					break;
-				}
-			}
-			//check if any objects should be made visible
-			else if (sWorld->collides(*it, this, 4.0)) {
-				Actor *actor = *it;
-				if (dynamic_cast<OilBarrel*>(actor)) { actor->setVisible(true); }
-				else if (dynamic_cast<GoldNugget*>(actor)) { actor->setVisible(true); }
-			}
-		}
+		//check collisions with boulders and makes some objects visible if they are close enough
+		sWorld->frackmanCollisions(this, originalX, originalY);
 	}
 	if(health > 0) return Actor::CONTINUE;
 	else return Actor::PLAYER_DIED;

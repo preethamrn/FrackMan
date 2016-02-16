@@ -156,6 +156,79 @@ bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) {
 	return (sqrt(dx*dx + dy*dy)) <= radius;
 }
 
+//when falling, check if it hits a player (PLAYER_DIED), protester (set protester to annoyed), dirt/another boulder (SELF_DIED)
+int StudentWorld::boulderCollisions(Boulder* b) {
+	if (collides(b, frackman, 3.0)) return Actor::PLAYER_DIED;
+	for (int i = 0; i < actors.size(); i++) {
+		if (collides(b, actors[i], 3.0)) {
+			if (dynamic_cast<Boulder*>(actors[i])) return Actor::SELF_DIED; //hit a boulder
+			else if (dynamic_cast<Protester*>(actors[i])) {
+				dynamic_cast<Protester*>(actors[i])->setGiveUp(); //hit a protester
+				increaseScore(500);
+			}
+		}
+	}
+	return Actor::CONTINUE;
+}
+
+int StudentWorld::goldNuggetCollisions(GoldNugget *gn) {
+	//check if collided with a protester
+	for (int i = 0; i < actors.size(); i++) {
+		if (collides(gn, actors[i], 3.0)) {
+			Protester *p = dynamic_cast<Protester*>(actors[i]);
+			if (p != nullptr) {
+				playSound(SOUND_PROTESTER_FOUND_GOLD);
+				if (dynamic_cast<RegularProtester*>(p)) {
+					p->setGiveUp();
+					increaseScore(25);
+				}
+				else if (dynamic_cast<HardcoreProtester*>(p)) {
+					p->setAnnoyed(15); ///DEBUGGING. should be setStaring or something...
+					increaseScore(50);
+				}
+				return Actor::SELF_DIED;
+			}
+		}
+	}
+	return Actor::CONTINUE;
+}
+int StudentWorld::squirtCollisions(Squirt *s) {
+	//check boulder/other collisions
+	bool dead = false;
+	for (int i = 0; i < actors.size(); i++) {
+		Actor *actor = actors[i];
+		if (collides(s, actor, 3.0)) {
+			if (dynamic_cast<Boulder*>(actor)) return Actor::SELF_DIED;
+			Protester *p = dynamic_cast<Protester*>(actor);
+			if (p != nullptr) {
+				if (p->setAnnoyed(15)) { ///DEBUGGING
+					dead = true;
+					p->decHealth(2);
+				}
+			}
+		}
+	}
+	if (dead) return Actor::SELF_DIED;
+	else return Actor::CONTINUE;
+}
+
+void StudentWorld::frackmanCollisions(FrackMan *f, int ox, int oy) {
+	for (std::vector<Actor*>::const_iterator it = actors.begin(); it != actors.end(); it++) {
+		//check boulders first
+		if (dynamic_cast<Boulder*>(*it)) {
+			if (collides(*it, f, 3.0)) {
+				f->moveTo(ox, oy); //move back to original position if it hits a boulder
+				break;
+			}
+		}
+		//check if any objects should be made visible
+		else if (collides(*it, f, 4.0)) {
+			Actor *actor = *it;
+			if (dynamic_cast<OilBarrel*>(actor)) { actor->setVisible(true); }
+			else if (dynamic_cast<GoldNugget*>(actor)) { actor->setVisible(true); }
+		}
+	}
+}
 
 void StudentWorld::addInitialActor(ActorType actorType) {
 	int x, y;
