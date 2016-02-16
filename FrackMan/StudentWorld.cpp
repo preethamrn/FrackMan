@@ -12,15 +12,15 @@ int StudentWorld::init() {
 		for (int j = 0; j < VIEW_HEIGHT; j++) {
 			if (j >= 60) dirt[i][j] = nullptr; //top layer
 			else if (j >= 4 && i >= 30 && i <= 33) dirt[i][j] = nullptr; //mineshaft
-			else dirt[i][j] = new Dirt(i, j);
+			else dirt[i][j] = new Dirt(i, j, this);
 		}
 	}
 	//initializing barrels of oil, boulders, and gold nuggets
-	int nBarrels = (int)fmin(2 + getLevel(), 20);
 	int nBoulders = (int)fmin(getLevel() / 2 + 2, 6);
+	int nBarrels = (int)fmin(2 + getLevel(), 20);
 	int nNuggets = (int)fmax(5 - getLevel() / 2, 2);
-	for (int i = 0; i < nBarrels; i++) addInitialActor(oilBarrel);
 	for (int i = 0; i < nBoulders; i++) addInitialActor(boulder);
+	for (int i = 0; i < nBarrels; i++) addInitialActor(oilBarrel);
 	for (int i = 0; i < nNuggets; i++) addInitialActor(goldNugget);
 
 	ticks = (int)fmin(25, 200 - getLevel()); //initial ticks (to start off with a protestor on first tick
@@ -45,15 +45,13 @@ int StudentWorld::move() {
 	//setGameStatText(std::to_string(ticks)); ///DEBUGGING
 	
 	if (frackman->doSomething() == Actor::PLAYER_DIED) {
-		decLives();
-		return GWSTATUS_PLAYER_DIED;
+		return playerDied();
 	}
 
 	for (unsigned int i = 0; i < actors.size(); i++) {
 		int ret = actors[i]->doSomething(); //returned by actor after doing something
 		if (ret == Actor::PLAYER_DIED) { //actor makes player give up
-			decLives();
-			return GWSTATUS_PLAYER_DIED;
+			return playerDied();
 		} else if (ret == Actor::SELF_DIED) { //actor gets destroyed
 			if (dynamic_cast<Protester*>(actors[i])) nProtesters--;
 			delete actors[i];
@@ -119,25 +117,43 @@ void StudentWorld::cleanUp() {
 
 void StudentWorld::useSonar() {
 	playSound(SOUND_SONAR);
+	for (int i = 0; i < actors.size(); i++) {
+		if (collides(frackman, actors[i], 12.0)) {
+			actors[i]->setVisible(true);
+		}
+	}
 }
 
 void StudentWorld::useWater() {
 	playSound(SOUND_PLAYER_SQUIRT);
+	GraphObject::Direction dir = frackman->getDirection();
+	int x = frackman->getX(), y = frackman->getY();
+	switch (dir) {
+	case GraphObject::up: y += 3; break;
+	case GraphObject::down: y -= 3; break;
+	case GraphObject::right: x += 3; break;
+	case GraphObject::left: x -= 3; break;
+	default:;
+	}
+	actors.push_back(new Squirt(x, y, dir, this));
 }
 
 void StudentWorld::useGold() {
-
+	int x = frackman->getX(), y = frackman->getY();
+	actors.push_back(new GoldNugget(x, y, true, false, false, this));
 }
 
-//constant time collision detection for square objects of side d1, d2
-//return true when one graph object is inside the other
-///DEBUGGING //function needs fixing for boulder collision
-bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2) {
-	int d1 = 4 * ob1->getSize(), d2 = 4 * ob2->getSize();
+//constant time collision detection for two objects within (<=) radius blocks other each other
+//return true when one graph object is inside the radius wrt another
+bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) {
+	/*int d1 = 4 * ob1->getSize(), d2 = 4 * ob2->getSize();
 	if (ob1->getX() + d1 > ob2->getX() && ob1->getX() <= ob2->getX() || ob2->getX() + d2 > ob1->getX() && ob2->getX() <= ob1->getX())
 		if (ob1->getY() + d1 > ob2->getY() && ob1->getY() <= ob2->getY() || ob2->getY() + d2 > ob1->getY() && ob2->getY() <= ob1->getY())
 			return true;
-	return false;
+	return false;*/ ///DEBUGGING? is it fixed?
+	if (ob1 == ob2) return false; //check for aliasing. In my universe I don't collide with myself. Deal with it.
+	double dx = ob1->getX() - ob2->getX(), dy = ob1->getY() - ob2->getY();
+	return (sqrt(dx*dx + dy*dy)) <= radius;
 }
 
 

@@ -17,15 +17,17 @@ public:
 	virtual int move();
 	virtual void cleanUp();
 
-	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
-	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
-	bool struckOil() { playSound(SOUND_FOUND_OIL); nOilBarrels--; return nOilBarrels == 0; }
+
 	void useSonar();
 	void useWater();
 	void useGold();
+
+	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
+	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
+	bool struckOil() { playSound(SOUND_FOUND_OIL); increaseScore(1000); nOilBarrels--; return nOilBarrels == 0; }
 	FrackMan* getFrackMan() { return frackman; }
 	std::vector<Actor*>* getActors() { return &actors; }
-	bool collides(GraphObject *ob1, GraphObject *ob2);
+	bool collides(GraphObject *ob1, GraphObject *ob2, double radius);
 
 private:
 	std::vector<Actor*> actors; //Vector of actors
@@ -43,10 +45,10 @@ private:
 		while (ret.length() < targetLength) ret = ' ' + ret;
 		return ret;
 	}
-	//functions for stat text
+	//helper functions for stat text
 	std::string getScoreText() {
 		std::string ret = std::to_string(getScore());
-		while (ret.length() < 6) ret += '0'; ///DEBUGGING
+		while (ret.length() < 6) ret = '0' + ret; ///DEBUGGING
 		return ret;
 	}
 	std::string getLevelText() { return widenText(std::to_string(getLevel()), 2); }
@@ -56,6 +58,14 @@ private:
 	std::string getGoldText() { return widenText(std::to_string(frackman->getGold()), 2); }
 	std::string getSonarText() { return widenText(std::to_string(frackman->getSonar()), 2); }
 	std::string getOilLeftText() { return widenText(std::to_string(nOilBarrels), 2); }
+
+
+	//miscellaneous helper functions
+	int playerDied() {
+		playSound(SOUND_PLAYER_GIVE_UP);
+		decLives();
+		return GWSTATUS_PLAYER_DIED;
+	}
 };
 
 #endif // STUDENTWORLD_H_

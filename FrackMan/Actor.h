@@ -16,10 +16,11 @@ protected:
 };
 
 //Dirt
-class Dirt : public GraphObject {
+class Dirt : public Actor {
 public:
-	Dirt(int x, int y);
+	Dirt(int x, int y, StudentWorld *sw);
 	virtual ~Dirt() {}
+	virtual int doSomething() { return CONTINUE; }
 };
 
 //Boulder
@@ -29,7 +30,8 @@ public:
 	virtual ~Boulder() {}
 	virtual int doSomething();
 private:
-	bool falling;
+	enum State {stable, falling, waiting};
+	int ticks, state;
 };
 
 //Gold Nugget
@@ -39,7 +41,8 @@ public:
 	virtual ~GoldNugget() {}
 	virtual int doSomething();
 private:
-	int ticks;
+	enum State {stable, temporary};
+	int ticks, state;
 };
 
 //Barrel of Oil
@@ -51,7 +54,14 @@ public:
 };
 
 //Squirt
-class Squirt : public Actor {};
+class Squirt : public Actor {
+public:
+	Squirt(int x, int y, Direction dir, StudentWorld *sw);
+	virtual ~Squirt() {}
+	virtual int doSomething();
+private:
+	int ticks;
+};
 
 //Goodie
 class Goodie : public Actor {
@@ -60,7 +70,7 @@ public:
 	virtual ~Goodie() {}
 	virtual int doSomething();
 private:
-	int ticks, points;
+	int ticks;
 };
 
 //Water Pool
@@ -69,8 +79,6 @@ public:
 	WaterPool(int x, int y, int t, StudentWorld *sw);
 	virtual ~WaterPool() {}
 	virtual int doSomething();
-private:
-	int ticks;
 };
 
 //Sonar Kit
@@ -79,16 +87,20 @@ public:
 	SonarKit(int x, int y, int t, StudentWorld *sw);
 	virtual ~SonarKit() {}
 	virtual int doSomething();
-private:
-	int ticks;
 };
 
 //Protester
 class Protester : public Actor {
 public:
-	Protester(int ID, int x, int y, StudentWorld *sw);
+	Protester(int ID, int x, int y, int h, StudentWorld *sw);
 	virtual ~Protester() = 0;
-	virtual int doSomething() = 0;
+	virtual int doSomething();
+	virtual bool setGiveUp();
+	bool setAnnoyed(int t);
+	void decHealth(int h);
+private:
+	enum State {resting, ready, annoyed, giveup};
+	int health, state, ticks;
 };
 
 //Regular Protester
@@ -97,6 +109,7 @@ public:
 	RegularProtester(int x, int y, StudentWorld *sw);
 	virtual ~RegularProtester() {}
 	virtual int doSomething();
+	virtual bool setGiveUp();
 };
 
 //Hardcore Protester
@@ -104,7 +117,8 @@ class HardcoreProtester : public Protester {
 public:
 	HardcoreProtester(int x, int y, StudentWorld *sw);
 	virtual ~HardcoreProtester() {}
-	virtual int doSomething();
+	virtual int doSomething(); 
+	virtual bool setGiveUp();
 };
 
 
