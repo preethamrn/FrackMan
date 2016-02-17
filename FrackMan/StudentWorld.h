@@ -25,19 +25,23 @@ public:
 	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
 	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
 	bool struckOil() { playSound(SOUND_FOUND_OIL); increaseScore(1000); nOilBarrels--; return nOilBarrels == 0; }
-	FrackMan* getFrackMan() { return frackman; }
+	//FrackMan* getFrackMan() { return frackman; }
 	//std::vector<Actor*>* getActors() { return &actors; }
+	BFSSearch* getSearch() { return search; }
 	bool collides(GraphObject *ob1, GraphObject *ob2, double radius);
 
 	int boulderCollisions(Boulder *b);
-	int goldNuggetCollisions(GoldNugget *gn);
+	int goldNuggetCollisions(GoldNugget *gn, bool isPlayerPickable);
+	int oilBarrelCollisions(OilBarrel *ob);
 	int squirtCollisions(Squirt *s);
+	int goodieCollisions(Goodie *g);
 	void frackmanCollisions(FrackMan *f, int ox, int oy);
 
 private:
 	std::vector<Actor*> actors; //Vector of actors
 	FrackMan* frackman; //Player pointer
 	Dirt *dirt[VIEW_WIDTH][VIEW_HEIGHT]; //Array of dirt
+	BFSSearch *search;
 	int ticks, nProtesters, nOilBarrels;
 
 	enum ActorType { boulder, oilBarrel, goldNugget };
@@ -46,14 +50,14 @@ private:
 
 
 	//pads text to targetLength with spaces
-	std::string widenText(std::string ret, int targetLength) {
+	std::string widenText(std::string ret, unsigned int targetLength) {
 		while (ret.length() < targetLength) ret = ' ' + ret;
 		return ret;
 	}
 	//helper functions for stat text
 	std::string getScoreText() {
 		std::string ret = std::to_string(getScore());
-		while (ret.length() < 6) ret = '0' + ret; ///DEBUGGING
+		while (ret.length() < 6) ret = '0' + ret; ///DEBUGGING? 6 or 8?
 		return ret;
 	}
 	std::string getLevelText() { return widenText(std::to_string(getLevel()), 2); }
