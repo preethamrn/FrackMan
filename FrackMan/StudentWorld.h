@@ -39,6 +39,31 @@ public:
 	int goodieCollisions(Goodie *g);
 	void frackmanCollisions(FrackMan *f, int ox, int oy);
 
+	///DEBUGGING: HAX functions
+
+	void superSquirt() {
+		playSound(SOUND_PLAYER_SQUIRT);
+		GraphObject::Direction dir = frackman->getDirection();
+		int x = frackman->getX(), y = frackman->getY();
+		for (int i = 0; i < actors.size(); i++) 
+			if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
+				x = actors[i]->getX(); y = actors[i]->getY();
+			}
+		actors.push_back(new Squirt(x, y, dir, this));
+	}
+	void goToOil() {
+		for (int i = 0; i < actors.size(); i++) {
+			if (actors[i]->getType() == Actor::OILBARREL) {
+				frackman->moveTo(actors[i]->getX(), actors[i]->getY());
+				break;
+			}
+		}
+	}
+	int nextLevel() { return Actor::LEVEL_SUCCESS; }
+
+	///DEBUGGING: end HAX functions
+
+
 private:
 	std::vector<Actor*> actors; //Vector of actors
 	FrackMan* frackman; //Player pointer

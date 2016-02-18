@@ -56,7 +56,8 @@ public:
 	virtual ~Actor() = 0;
 	virtual int doSomething() = 0;
 	StudentWorld* getStudentWorld();
-	Type getType() { return m_type; }
+	Type getType() const { return m_type; }
+	
 private:
 	StudentWorld *sWorld; Type m_type;
 };
@@ -204,3 +205,4 @@ private:
 };
 
 #endif // ACTOR_H_
+

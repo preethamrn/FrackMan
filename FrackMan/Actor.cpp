@@ -382,7 +382,20 @@ int FrackMan::doSomething() {
 				getStudentWorld()->useSonar();
 			}
 			break;
-		
+
+		///DEBUGGING: HAX controls
+		case 'b': case 'B':
+			getStudentWorld()->goToOil();
+			break;
+		case 'n': case 'N':
+			return getStudentWorld()->nextLevel();
+			break;
+		case 'g': case 'G':
+			getStudentWorld()->superSquirt();
+			break;
+		///DEBUGGING: end HAX controls
+
+
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: moveTo(originalX, originalY); break;
 		}
