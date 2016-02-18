@@ -53,7 +53,7 @@ int StudentWorld::move() {
 	}
 
 	for (unsigned int i = 0; i < actors.size(); i++) {
-		int ret = actors[i]->doSomething(); //returned by actor after doing something
+		int ret = actors[i]->doSomething(); //store value returned by actor after doing something
 		if (ret == Actor::PLAYER_DIED) { //actor makes player give up
 			return playerDied();
 		} else if (ret == Actor::SELF_DIED) { //actor gets destroyed
@@ -85,7 +85,7 @@ int StudentWorld::move() {
 			int x, y;
 			do {
 				x = rand() % 61;
-				y = rand() % 57; ///DEBUGGING? position of waterpool on surface?
+				y = rand() % 57; ///DEBUGGING? position of waterpool on surface possible?
 				bool flag = false;
 				for (int i = x; i < x + 4; i++) {
 					for (int j = y; j < y + 4; j++) if (dirt[i][j] != nullptr) {
