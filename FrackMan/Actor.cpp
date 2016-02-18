@@ -203,10 +203,7 @@ SonarKit::SonarKit(int x, int y, int t, StudentWorld *sw) : Goodie(IID_SONAR, x,
 //Protester functions
 Protester::Protester(int ID, int x, int y, int t, int h, Type type, StudentWorld *sw) : Actor(ID, x, y, left, 1.0, 0, type, sw), health(h), waitingTicks(t), ticks(t), numStepsInDir(rand() % 53 + 8), stepsSincePerp(0), dead(false) { setVisible(true); }
 inline Protester::~Protester() {}
-bool Protester::setResting(int t) { 
-	ticks = t;
-	return true;
-}
+void Protester::setResting(int t) { ticks = t; }
 bool Protester::decHealth(int h) { health -= h; return health <= 0; }
 void Protester::setDead() { dead = true; }
 void Protester::changeDir(Direction d) {
@@ -333,7 +330,7 @@ int DeadProtester::doSomething() {
 }
 
 //FrackMan functions
-FrackMan::FrackMan(StudentWorld *sw) : GraphObject(IID_PLAYER, 30, 60, right, 1.0, 0), health(10), water(5), sonar(1), gold(0), sWorld(sw) {
+FrackMan::FrackMan(StudentWorld *sw) : Actor(IID_PLAYER, 30, 60, right, 1.0, 0, FRACKMAN, sw), health(10), water(5), sonar(1), gold(0) {
 	setVisible(true);
 }
 int FrackMan::doSomething() {
@@ -341,19 +338,19 @@ int FrackMan::doSomething() {
 	bool removedDirt = false;
 	for (int i = getX(); i < getX() + 4; i++) {
 		for (int j = getY(); j < getY() + 4; j++) {
-			if (sWorld->isDirt(i, j)) {
-				sWorld->removeDirt(i, j);
+			if (getStudentWorld()->isDirt(i, j)) {
+				getStudentWorld()->removeDirt(i, j);
 				removedDirt = true;
 			}
 		}
 	}
 	if (removedDirt) {
-		sWorld->playSound(SOUND_DIG);
-		sWorld->setUpdateSearch();
+		getStudentWorld()->playSound(SOUND_DIG);
+		getStudentWorld()->setUpdateSearch();
 	}
 	int ch;
 	int originalX = getX(), originalY = getY();
-	if (sWorld->getKey(ch)) {
+	if (getStudentWorld()->getKey(ch)) {
 		switch (ch) {
 		case KEY_PRESS_UP: case 'W':
 			if (getDirection() == up) moveTo(getX(), getY() + 1);
@@ -370,19 +367,19 @@ int FrackMan::doSomething() {
 		case KEY_PRESS_TAB:
 			if (gold > 0) {
 				gold--;
-				sWorld->useGold();
+				getStudentWorld()->useGold();
 			}
 			break;
 		case KEY_PRESS_SPACE:
 			if (water > 0) {
 				water--;
-				sWorld->useWater();
+				getStudentWorld()->useWater();
 			}
 			break;
 		case 'z': case 'Z':
 			if (sonar > 0) {
 				sonar--;
-				sWorld->useSonar();
+				getStudentWorld()->useSonar();
 			}
 			break;
 		
@@ -394,7 +391,7 @@ int FrackMan::doSomething() {
 		if (getX() < 0 || getY() < 0 || getX() > VIEW_WIDTH - 4 * getSize() || getY() > VIEW_HEIGHT - 4 * getSize())
 			for (int i = 0; i < 4; i++) moveTo(originalX, originalY); //run moveTo multiple times to run through animation
 		//check collisions with boulders and makes some objects visible if they are close enough
-		sWorld->frackmanCollisions(this, originalX, originalY);
+		getStudentWorld()->frackmanCollisions(this, originalX, originalY);
 	}
 	if(health > 0) return Actor::CONTINUE;
 	else return Actor::PLAYER_DIED;

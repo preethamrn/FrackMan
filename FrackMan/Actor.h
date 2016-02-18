@@ -50,7 +50,7 @@ private:
 class Actor : public GraphObject {
 public:
 	enum Return { PLAYER_DIED, SELF_DIED, PICKED_UP, LEVEL_SUCCESS, CONTINUE };
-	enum Type { DIRT, BOULDER, GOLDNUGGET, OILBARREL, SQUIRT, WATERPOOL, SONARKIT, REGPROTESTER, HCOREPROTESTER, DEADPROTESTER };
+	enum Type { DIRT, BOULDER, GOLDNUGGET, OILBARREL, SQUIRT, WATERPOOL, SONARKIT, REGPROTESTER, HCOREPROTESTER, DEADPROTESTER, FRACKMAN };
 
 	Actor(int ID, int x, int y, Direction dir, float size, int depth, Type type, StudentWorld *sw);
 	virtual ~Actor() = 0;
@@ -139,7 +139,7 @@ public:
 	Protester(int ID, int x, int y, int t, int h, Type type, StudentWorld *sw);
 	virtual ~Protester() = 0;
 	virtual int doSomething();
-	virtual bool setResting(int t);
+	virtual void setResting(int t);
 	bool decHealth(int h);
 	void setDead();
 protected:
@@ -176,23 +176,23 @@ public:
 	DeadProtester(int ID, int x, int y, int t, StudentWorld *sw);
 	virtual ~DeadProtester() {}
 	virtual int doSomething();
-	virtual bool setResting(int t) { return false; } //nothing can affect a dead protester
+	virtual void setResting(int t) { return; } //nothing can affect a dead protester
 private:
 	int ticks, waitingTicks;
 	virtual bool tryChasingFrackman() { return false; } //dead protester doesn't chase frackman
 };
 
-class FrackMan : public GraphObject {
+class FrackMan : public Actor {
 public:
 	FrackMan(StudentWorld *sw);
 	virtual ~FrackMan() {}
 	virtual int doSomething();
 
 	//accessor functions
-	int getHealth() { return health; }
-	int getWater() { return water; }
-	int getSonar() { return sonar; }
-	int getGold() { return gold; }
+	int getHealth() const { return health; }
+	int getWater() const { return water; }
+	int getSonar() const { return sonar; }
+	int getGold() const { return gold; }
 	//mutator functions
 	bool decHealth(int h) { health-=h; return health <= 0; } //return false if frackman dies
 	void setHealth(int h) { health = h; }
@@ -200,7 +200,6 @@ public:
 	void setSonar(int s) { sonar = s; }
 	void setGold(int g) { gold = g; }
 private:
-	StudentWorld *sWorld;
 	int health, water, sonar, gold;
 };
 

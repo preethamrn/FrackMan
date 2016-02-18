@@ -23,9 +23,9 @@ int StudentWorld::init() {
 	int nBoulders = min(getLevel() / 2 + 2, 6);
 	int nBarrels = min(2 + getLevel(), 20);
 	int nNuggets = max(5 - getLevel() / 2, 2);
-	for (int i = 0; i < nBoulders; i++) addInitialActor(boulder);
-	for (int i = 0; i < nBarrels; i++) addInitialActor(oilBarrel);
-	for (int i = 0; i < nNuggets; i++) addInitialActor(goldNugget);
+	for (int i = 0; i < nBoulders; i++) addInitialActor(Actor::BOULDER);
+	for (int i = 0; i < nBarrels; i++) addInitialActor(Actor::OILBARREL);
+	for (int i = 0; i < nNuggets; i++) addInitialActor(Actor::GOLDNUGGET);
 
 	ticks = max(25, 200 - getLevel()); //initial ticks (to start off with a protestor on first tick)
 	nOilBarrels = nBarrels; //set number of barrels
@@ -151,7 +151,7 @@ void StudentWorld::useGold() {
 
 //constant time collision detection for two objects within (<=) radius blocks other each other
 //return true when one graph object is inside the radius wrt another
-bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) {
+bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) const {
 	if (ob1 == ob2) return false; //check for aliasing. In this universe I don't collide with myself. Deal with it. (because boulder would always break immediately otherwise)
 	double dx = ob1->getX() - ob2->getX(), dy = ob1->getY() - ob2->getY();
 	return (dx*dx + dy*dy <= radius*radius);
@@ -310,7 +310,7 @@ void StudentWorld::frackmanCollisions(FrackMan *f, int ox, int oy) {
 	}
 }
 
-void StudentWorld::addInitialActor(ActorType actorType) {
+void StudentWorld::addInitialActor(Actor::Type actorType) {
 	int x, y;
 	double dist;
 	//find a good x, y
@@ -329,7 +329,7 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 
 	//create appropriate actor
 	Actor *actor;
-	if (actorType == boulder) {
+	if (actorType == Actor::BOULDER) {
 		actor = new Boulder(x, y, this);
 		for (int i = x; i < x + 4; i++) {
 			for (int j = y; j < y + 4; j++) {
@@ -338,7 +338,7 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 			}
 		}
 	}
-	else if (actorType == oilBarrel) actor = new OilBarrel(x, y, this);
-	else if (actorType == goldNugget) actor = new GoldNugget(x, y, false, true, true, this);
+	else if (actorType == Actor::OILBARREL) actor = new OilBarrel(x, y, this);
+	else if (actorType == Actor::GOLDNUGGET) actor = new GoldNugget(x, y, false, true, true, this);
 	actors.push_back(actor); //add actor to list of actors
 }
