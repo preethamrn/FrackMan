@@ -1,14 +1,75 @@
 #include "Actor.h"
 #include "StudentWorld.h"
+#include <queue>
 
 //BFSSearch functions
-BFSSearch::BFSSearch() {
+BFSSearch::BFSSearch(StudentWorld *sw) {
+	sWorld = sw;
 	lastX = -1; lastY = -1;
+	m_updateMovable = false;
 	for (int i = 0; i < 64; i++)
 		for (int j = 0; j < 64; j++)
 			movable[i][j] = false;
 }
 
+int BFSSearch::search(GraphObject *ob, int x, int y, GraphObject::Direction &dir) {
+	if (lastX != x || lastY != y) update(x, y); //if the last search was different, reupdate the search
+	dir = shortestPathDirection[ob->getX()][ob->getY()];
+	return shortestPathLength[ob->getX()][ob->getY()];
+}
+
+void BFSSearch::update(int sx, int sy) {
+	if (!m_updateMovable) updateMovable(); //if movable hasn't been updated, update it
+	//init directions and shortest paths
+	for (int i = 0; i < 64; i++) {
+		for (int j = 0; j < 64; j++) {
+			shortestPathDirection[i][j] = GraphObject::Direction::none;
+			shortestPathLength[i][j] = -1;
+		}
+	}
+
+	std::queue<Point> pointQueue;
+	int nRows = 61, nCols = 61;
+	
+	if (sx < 0 || sx > nRows || sy < 0 || sy > nCols) return;
+	if (!movable[sx][sy]) return;
+
+	pointQueue.push(Point(sx, sy));
+	shortestPathDirection[sx][sy] = GraphObject::Direction::left; //random direction chosen by fair dice
+	shortestPathLength[sx][sy] = 0;
+
+	//Queue based search for most optimal path
+	while (!pointQueue.empty()) {
+		Point curr = pointQueue.front(); pointQueue.pop();
+		int x = curr.x(), y = curr.y();
+
+		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::Direction::none) {
+			pointQueue.push(Point(x, y + 1)); //up
+			shortestPathDirection[x][y + 1] = GraphObject::Direction::down;
+			shortestPathLength[x][y + 1] = shortestPathLength[x][y] + 1;
+		}
+		if (y > 0 && movable[x][y - 1] && shortestPathDirection[x][y - 1] == GraphObject::Direction::none) {
+			pointQueue.push(Point(x, y - 1)); //down
+			shortestPathDirection[x][y - 1] = GraphObject::Direction::up;
+			shortestPathLength[x][y - 1] = shortestPathLength[x][y] + 1;
+		}
+		if (x < nRows - 1 && movable[x + 1][y] && shortestPathDirection[x + 1][y] == GraphObject::Direction::none) {
+			pointQueue.push(Point(x + 1, y)); //right
+			shortestPathDirection[x + 1][y] = GraphObject::Direction::left;
+			shortestPathLength[x + 1][y] = shortestPathLength[x][y] + 1;
+		}
+		if (x > 0 && movable[x - 1][y] && shortestPathDirection[x - 1][y] == GraphObject::Direction::none) {
+			pointQueue.push(Point(x - 1, y)); //left
+			shortestPathDirection[x - 1][y] = GraphObject::Direction::right;
+			shortestPathLength[x - 1][y] = shortestPathLength[x][y] + 1;
+		}
+	}
+}
+
+void BFSSearch::updateMovable() {
+	sWorld->updateMovable(movable);
+	m_updateMovable = true;
+}
 
 
 //Actor functions
@@ -38,49 +99,18 @@ int Boulder::doSomething() {
 		} //state becomes waiting if there's no dirt underneath rock
 	}
 	if (state == falling) {
-		bool dead = false;
-
-
-
 		moveTo(getX(), getY() - 1);
-		if (getY() < 0) dead = true; //hit the bottom
+
+		getStudentWorld()->setUpdateSearch(); //search space must be updated
+
+		if (getY() < 0) return SELF_DIED; //hit the bottom
 		for (int i = 0; i < 4; i++) {
-			if (getStudentWorld()->isDirt(getX() + i, getY())) dead = true; //hit dirt
+			if (getStudentWorld()->isDirt(getX() + i, getY())) return SELF_DIED; //hit dirt
 		}
 		//check collisions with other objects
-		int ret = getStudentWorld()->boulderCollisions(this);
-		if (ret == SELF_DIED) dead = true; //hit boulder
-		else if (ret == PLAYER_DIED) return PLAYER_DIED; //hit frackman
-
-		if (dead) {
-			updateSearch(); return SELF_DIED; //hit something to cause it to die. must update movable space.
-		}
-		else {
-			getStudentWorld()->getSearch()->setNotMovable(getX(), getY()); //set current position to not movable (occupied by boulder)
-			//decide whether to set spot above it to movable
-			bool movable = true;
-			for (int i = getX(); i < getX() + 4; i++) {
-				for (int j = getY() + 4; j < getY() + 8; j++) {
-					if (getStudentWorld()->isDirt(i, j)) {
-						movable = false;
-						break;
-					}
-				}
-				if (!movable) break;
-			}
-			if (movable) getStudentWorld()->getSearch()->setMovable(getX(), getY()+4);
-		}
+		return getStudentWorld()->boulderCollisions(this);
 	}
 	return CONTINUE;
-}
-
-void Boulder::updateSearch() {
-	int x = getX(), y = getY();
-	for (int i = 1; i <= 4; i++)
-		getStudentWorld()->getSearch()->setMovable(x, y + i);
-	
-	#include <iostream>
-	getStudentWorld()->getSearch()->printMovable(); ///DEBUGGING
 }
 
 //GoldNugget functions
@@ -158,45 +188,48 @@ SonarKit::SonarKit(int x, int y, int t, StudentWorld *sw) : Goodie(IID_SONAR, x,
 
 
 //Protester functions
-Protester::Protester(int ID, int x, int y, int h, StudentWorld *sw) : Actor(ID, x, y, left, 1.0, 0, sw), state(ready), health(h), ticks(15) { setVisible(true); }
+Protester::Protester(int ID, int x, int y, int t, int h, StudentWorld *sw) : Actor(ID, x, y, left, 1.0, 0, sw), health(h), waitingTicks(t), ticks(t) { setVisible(true); }
 inline Protester::~Protester() {}
-bool Protester::setGiveUp() { state = giveup; return true; }
-bool Protester::setAnnoyed(int t) { 
-	if (state == giveup) return false; 
-	state = resting; ticks = t; 
+bool Protester::setResting(int t) { 
+	ticks = t;
 	return true;
 }
 void Protester::decHealth(int h) { health -= h; }
 int Protester::doSomething() {
-	///DEBUGGING
-	///HO LE FUC this isn't anywhere near what I'm supposed to do.
-	if (!ticks) {
-		getStudentWorld()->playSound(SOUND_PROTESTER_GIVE_UP);
-		state = ready;
-		ticks = 15;
+	if (ticks) {
+		ticks--;
+		return CONTINUE;
 	}
-	//when protester hits frackman check if it killed him, return PLAYER_DIED from here
-	if(state == annoyed) ticks--;
-	else if (state == ready) {}
-	else if (state == giveup) {}
+	//if protester isn't waiting, it'll start waiting from the next tick
+	ticks = waitingTicks;
+	//if protester hits frackman check if it killed him, return PLAYER_DIED from here
+	if (getStudentWorld()->collides(this, getStudentWorld()->getFrackMan(), 4.0)) {
+		if(getStudentWorld()->getFrackMan()->decHealth(2)) return PLAYER_DIED;
+		ticks = 15 * waitingTicks; //15 non-resting ticks
+		return CONTINUE;
+	}
+	if(tryChasingFrackman()) return CONTINUE; //it was able to chase frackman tick
+
 	return CONTINUE;
 }
 
 //Regular Protester functions
-RegularProtester::RegularProtester(int x, int y, StudentWorld *sw) : Protester(IID_PROTESTER, x, y, 5, sw) {}
-bool RegularProtester::setGiveUp() { getStudentWorld()->increaseScore(100); return Protester::setGiveUp(); }
+RegularProtester::RegularProtester(int x, int y, int t, StudentWorld *sw) : Protester(IID_PROTESTER, x, y, t, 5, sw) {}
 int RegularProtester::doSomething() {
 	int ret = Protester::doSomething();
 	return ret;
 }
 
 //HardcoreProtester functions
-HardcoreProtester::HardcoreProtester(int x, int y, StudentWorld *sw) : Protester(IID_HARD_CORE_PROTESTER, x, y, 20, sw) {}
-bool HardcoreProtester::setGiveUp() { getStudentWorld()->increaseScore(250); return Protester::setGiveUp(); }
+HardcoreProtester::HardcoreProtester(int x, int y, int t, StudentWorld *sw) : Protester(IID_HARD_CORE_PROTESTER, x, y, t, 20, sw) {}
 int HardcoreProtester::doSomething() {
 	int ret = Protester::doSomething();
 	return ret;
 }
+
+//Dead functions
+DeadProtester::DeadProtester(int x, int y, StudentWorld *sw) : Protester(IID_HARD_CORE_PROTESTER, x, y, 20, sw) {}
+
 
 //FrackMan functions
 FrackMan::FrackMan(StudentWorld *sw) : GraphObject(IID_PLAYER, 30, 60, right, 1.0, 0), health(10), water(5), sonar(1), gold(0), sWorld(sw) {
@@ -215,22 +248,22 @@ int FrackMan::doSomething() {
 	}
 	if (removedDirt) {
 		sWorld->playSound(SOUND_DIG);
-		sWorld->getSearch()->setMovable(getX(), getY());
+		sWorld->setUpdateSearch();
 	}
 	int ch;
 	int originalX = getX(), originalY = getY();
 	if (sWorld->getKey(ch)) {
 		switch (ch) {
-		case KEY_PRESS_UP:
+		case KEY_PRESS_UP: case 'W':
 			if (getDirection() == up) moveTo(getX(), getY() + 1);
 			else setDirection(up); break;
-		case KEY_PRESS_DOWN:
+		case KEY_PRESS_DOWN: case 'S':
 			if (getDirection() == down) moveTo(getX(), getY() - 1);
 			else setDirection(down); break;
-		case KEY_PRESS_RIGHT:
+		case KEY_PRESS_RIGHT: case 'D':
 			if (getDirection() == right) moveTo(getX() + 1, getY());
 			else setDirection(right); break;
-		case KEY_PRESS_LEFT:
+		case KEY_PRESS_LEFT: case 'A':
 			if (getDirection() == left) moveTo(getX() - 1, getY());
 			else setDirection(left); break;
 		case KEY_PRESS_TAB:
@@ -245,12 +278,17 @@ int FrackMan::doSomething() {
 				sWorld->useWater();
 			}
 			break;
-		case 'z':
+		case 'z': case 'Z':
 			if (sonar > 0) {
 				sonar--;
 				sWorld->useSonar();
 			}
 			break;
+		
+		///DEBUGGING!!!!!
+		case 'v': case 'V': sWorld->getSearch()->printMovable(); break; ///DEBUGGING!!!!!
+		///DEBUGGING!!!!!
+		
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: moveTo(originalX, originalY); break;
 		}

@@ -7,27 +7,58 @@ class StudentWorld;
 //BFS Seach class for finding shortest path to a point
 class BFSSearch {
 public:
-	BFSSearch();
-	int search(GraphObject *ob1, int x, int y, GraphObject::Direction &dir);
+	BFSSearch(StudentWorld *sw);
+	int search(GraphObject *ob, int x, int y, GraphObject::Direction &dir);
+	//first updates if lastX/lastY have changed
 	//returns length of shortest path (-1 if not possible), sets dir = direction to take
 	//use lastX and lastY to decide whether you should recompute the shortest path arrays
-	void update(int x, int y);
-	//updates shortest path arrays to contain shortest path to position (x,y)
 
-	//reset lastX and lastY because shortest paths much be recalculated now
-	void setMovable(int x, int y) { movable[x][y] = true; lastX = -1; lastY = -1; } 
-	void setNotMovable(int x, int y) { movable[x][y] = false; lastX = -1; lastY = -1; }
+	///DEBUGGING: Make function that returns whether within line of sight
 
-	///DEBUGGING:
-	///MUST FIX HOW FRACKMAN MINING DIRT UPDATES MOVABLE (... I have no clue)
-	///MUST FIX HOW BOULDERS UPDATE MOVABLE (must update all 4 points to left of boulder instead of just one point on top)
+	//reset lastX, lastY, and updateMovable because shortest paths much be recalculated now
+	void setUpdateMovable() { lastX = -1; lastY = -1; m_updateMovable = false; }
 
-	void printMovable() { for (int i = 63; i >= 0; i--) { for (int j = 0; j < 64; j++) std::cout << movable[j][i]; std::cout << std::endl; } } ///DEBUGGING!!!!
+	///DEBUGGING!!!!!!
+	#include <iostream>
+	void printMovable() {
+		for (int i = 63; i >= 0; i--) { 
+			for (int j = 0; j < 64; j++)
+				std::cout << movable[j][i];
+				/*switch (shortestPathDirection[j][i]) {
+				case GraphObject::Direction::right: std::cout << 'r'; break;
+				case GraphObject::Direction::up: std::cout << 'u'; break;
+				case GraphObject::Direction::down: std::cout << 'd'; break;
+				case GraphObject::Direction::left: std::cout << 'l'; break;
+				case GraphObject::Direction::none: std::cout << 'x'; break;
+				}*/
+			std::cout << std::endl;
+		} 
+		for (int i = 0; i < 64; i++) std::cout << '-'; std::cout << std::endl;
+	} ///DEBUGGING!!!!
 private:
 	bool movable[64][64];
 	GraphObject::Direction shortestPathDirection[64][64];
 	int shortestPathLength[64][64];
 	int lastX, lastY;
+	bool m_updateMovable;
+	StudentWorld *sWorld;
+
+	void update(int x, int y);
+	//first updates movable if not yet updated
+	//updates shortest path arrays to contain shortest path to position (x,y)
+	void updateMovable();
+	//updates movable array to show where protesters can move
+
+	//Auxiliary class for queue based search
+	class Point {
+	public:
+		Point(int x, int y) : m_x(x), m_y(y) {}
+		int x() const { return m_x; }
+		int y() const { return m_y; }
+	private:
+		int m_x;
+		int m_y;
+	};
 };
 
 //Actor
@@ -57,7 +88,6 @@ public:
 	virtual ~Boulder() {}
 	virtual int doSomething();
 private:
-	void updateSearch();
 	enum State {stable, falling, waiting};
 	int ticks, state;
 };
@@ -118,35 +148,46 @@ public:
 //Protester
 class Protester : public Actor {
 public:
-	Protester(int ID, int x, int y, int h, StudentWorld *sw);
+	Protester(int ID, int x, int y, int t, int h, StudentWorld *sw);
 	virtual ~Protester() = 0;
 	virtual int doSomething();
-	virtual bool setGiveUp();
-	bool setAnnoyed(int t);
+	virtual bool setResting(int t);
 	void decHealth(int h);
 private:
-	enum State {resting, ready, annoyed, giveup};
-	int health, state, ticks;
+	virtual bool tryChasingFrackman() = 0;
+	int health, state, ticks, waitingTicks;
 };
 
 //Regular Protester
 class RegularProtester : public Protester {
 public:
-	RegularProtester(int x, int y, StudentWorld *sw);
+	RegularProtester(int x, int y, int t, StudentWorld *sw);
 	virtual ~RegularProtester() {}
 	virtual int doSomething();
-	virtual bool setGiveUp();
+private:
+	virtual bool tryChasingFrackman();
 };
 
 //Hardcore Protester
 class HardcoreProtester : public Protester {
 public:
-	HardcoreProtester(int x, int y, StudentWorld *sw);
+	HardcoreProtester(int x, int y, int t, StudentWorld *sw);
 	virtual ~HardcoreProtester() {}
 	virtual int doSomething(); 
-	virtual bool setGiveUp();
+private:
+	virtual bool tryChasingFrackman();
 };
 
+//Dead Protester
+class DeadProtester : public Protester {
+public:
+	DeadProtester(int x, int y, StudentWorld *sw);
+	virtual ~DeadProtester() {}
+	virtual int doSomething();
+	virtual bool setResting(int t) { return false; } //nothing can affect a dead protester
+private:
+	virtual bool tryChasingFrackman() { return false; } //dead protester doesn't chase frackman
+};
 
 class FrackMan : public GraphObject {
 public:
@@ -160,7 +201,7 @@ public:
 	int getSonar() { return sonar; }
 	int getGold() { return gold; }
 	//mutator functions
-	bool decHealth() { health--; return health == 0; } //return false if frackman dies
+	bool decHealth(int h) { health-=h; return health <= 0; } //return false if frackman dies
 	void setHealth(int h) { health = h; }
 	void setWater(int w) { water = w; }
 	void setSonar(int s) { sonar = s; }

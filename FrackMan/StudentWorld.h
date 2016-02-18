@@ -25,9 +25,11 @@ public:
 	bool isDirt(int x, int y) { return dirt[x][y] != nullptr; }
 	void removeDirt(int x, int y) { delete dirt[x][y]; dirt[x][y] = nullptr; }
 	bool struckOil() { playSound(SOUND_FOUND_OIL); increaseScore(1000); nOilBarrels--; return nOilBarrels == 0; }
-	//FrackMan* getFrackMan() { return frackman; }
-	//std::vector<Actor*>* getActors() { return &actors; }
-	BFSSearch* getSearch() { return search; }
+
+	FrackMan* getFrackMan() { return frackman; } //used for checking protester collisions
+	BFSSearch* getSearch() { return search; } ///DEBUGGING
+	void setUpdateSearch() { search->setUpdateMovable(); }
+	void updateMovable(bool movable[][64]);
 	bool collides(GraphObject *ob1, GraphObject *ob2, double radius);
 
 	int boulderCollisions(Boulder *b);
@@ -75,6 +77,8 @@ private:
 		decLives();
 		return GWSTATUS_PLAYER_DIED;
 	}
+	int min(int a, int b) { return a < b ? a : b; }
+	int max(int a, int b) { return a > b ? a : b; }
 };
 
 #endif // STUDENTWORLD_H_

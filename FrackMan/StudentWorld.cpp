@@ -7,7 +7,7 @@ GameWorld* createStudentWorld(std::string assetDir) {
 }
 
 int StudentWorld::init() {
-	search = new BFSSearch(); //creating new search
+	search = new BFSSearch(this); //creating new search
 
 	//initializing dirt and open locations in search
 	for (int i = 0; i < VIEW_WIDTH; i++) {
@@ -15,18 +15,17 @@ int StudentWorld::init() {
 			if (j >= 60) dirt[i][j] = nullptr; //top layer
 			else if (j >= 4 && i >= 30 && i <= 33) dirt[i][j] = nullptr; //mineshaft
 			else dirt[i][j] = new Dirt(i, j, this);
-			if (j == 60 && i <= 60 || i == 30 && j >= 4 && j <= 60) search->setMovable(i, j); //mineshaft and top layer are movable
 		}
 	}
 	//initializing barrels of oil, boulders, and gold nuggets
-	int nBoulders = (int)fmin(getLevel() / 2 + 2, 6);
-	int nBarrels = (int)fmin(2 + getLevel(), 20);
-	int nNuggets = (int)fmax(5 - getLevel() / 2, 2);
+	int nBoulders = min(getLevel() / 2 + 2, 6);
+	int nBarrels = min(2 + getLevel(), 20);
+	int nNuggets = max(5 - getLevel() / 2, 2);
 	for (int i = 0; i < nBoulders; i++) addInitialActor(boulder);
 	for (int i = 0; i < nBarrels; i++) addInitialActor(oilBarrel);
 	for (int i = 0; i < nNuggets; i++) addInitialActor(goldNugget);
 
-	ticks = (int)fmin(25, 200 - getLevel()); //initial ticks (to start off with a protestor on first tick)
+	ticks = max(25, 200 - getLevel()); //initial ticks (to start off with a protestor on first tick)
 	nOilBarrels = nBarrels; //set number of barrels
 	nProtesters = 0; //set initial number of protesters
 	frackman = new FrackMan(this); //create new FrackMan
@@ -68,17 +67,17 @@ int StudentWorld::move() {
 	}
 
 	//checking to add protester
-	if (ticks >= (int)fmin(25, 200 - getLevel())) {
-		if (nProtesters < (int)fmin(15, 2 + getLevel()*1.5)) {
-			if ((rand() % (int)fmin(90, getLevel() * 10 + 30)) == 0) actors.push_back(new HardcoreProtester(60, 60, this));
-			else actors.push_back(new RegularProtester(60, 60, this));
+	if (ticks >= min(25, 200 - getLevel())) {
+		if (nProtesters < min(15, 2 + getLevel()*1.5)) {
+			if ((rand() % min(90, getLevel() * 10 + 30)) == 0) actors.push_back(new HardcoreProtester(60, 60, min(0, 3 - getLevel() / 4), this));
+			else actors.push_back(new RegularProtester(60, 60, min(0, 3 - getLevel() / 4), this));
 			nProtesters++;
 			ticks = 0;
 		}
 	}
 	//checking to add waterpool or sonar kit
 	if ((rand() % (getLevel() * 25 + 300)) == 0) {
-		if ((rand() % 5) == 0) actors.push_back(new SonarKit(0, 60, fmax(100, 300 - 10 * getLevel()), this)); //adding sonar kit
+		if ((rand() % 5) == 0) actors.push_back(new SonarKit(0, 60, max(100, 300 - 10 * getLevel()), this)); //adding sonar kit
 		else {
 			//finding position for waterpool
 			int x, y;
@@ -95,10 +94,13 @@ int StudentWorld::move() {
 				}
 				if (!flag) break;
 			} while (true);
-			actors.push_back(new WaterPool(x, y, fmax(100, 300 - 10 * getLevel()), this)); //adding waterpool
+			actors.push_back(new WaterPool(x, y, max(100, 300 - 10 * getLevel()), this)); //adding waterpool
 		}
 	}
-	
+	///DEBUGGING
+	GraphObject::Direction dir;
+	search->search(actors[0], frackman->getX(), frackman->getY(), dir);
+
 	ticks++;
 	return GWSTATUS_CONTINUE_GAME;
 }
@@ -156,6 +158,33 @@ bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) {
 	double dx = ob1->getX() - ob2->getX(), dy = ob1->getY() - ob2->getY();
 	return (sqrt(dx*dx + dy*dy)) <= radius;
 }
+
+//function called by a BFSSearch to update its movable positions. Processed by StudentWorld to get positions of dirt and boulders
+void StudentWorld::updateMovable(bool movable[][64]) {
+	for (int x = 0; x <= 60; x++) {
+		for (int y = 0; y <= 60; y++) {
+			bool open = true;
+			for (int i = 0; i < 4; i++) {
+				for (int j = 0; j < 4; j++) {
+					if (dirt[x + i][y + j] != nullptr) { open = false; break; }
+				}
+				if (!open) break;
+			}
+			movable[x][y] = open;
+		}
+	}
+	for (int i = 0; i < actors.size(); i++) {
+		Boulder *b = dynamic_cast<Boulder*>(actors[i]);
+		if (b != nullptr) {
+			for (int x = -4; x <= 4; x++) {
+				for (int y = -4; y <= 4; y++) {
+					if (sqrt(x*x + y*y) <= 3.0) movable[b->getX() + x][b->getY() + y] = false; //position is within boulder's hitbox
+				}
+			}
+		}
+	}
+}
+
 
 //when falling, check if it hits a player (PLAYER_DIED), protester (set protester to annoyed), dirt/another boulder (SELF_DIED)
 int StudentWorld::boulderCollisions(Boulder* b) {
@@ -281,7 +310,7 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 			Actor *a = *it;
 			int dx = x - a->getX();
 			int dy = y - a->getY();
-			dist = fmin(sqrt(dx*dx + dy*dy), dist);
+			dist = min(sqrt(dx*dx + dy*dy), dist);
 		}
 	} while (dist <= 6.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft 
 														   ///DEBUGGING (boulders spawn inside minshaft too?) - this doesn't

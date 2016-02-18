@@ -1,10 +1,13 @@
-﻿Build started 2/16/2016 8:47:26 PM.
+﻿Build started 2/17/2016 3:27:27 PM.
      1>Project "E:\UCLA\CS32\Project 3\FrackMan\FrackMan.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /IirrKlang /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _CRT_SECURE_NO_WARNINGS /D GLUT_BUILDING_LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Actor.cpp StudentWorld.cpp
          StudentWorld.cpp
-     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(81): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
-     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(98): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(71): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(176): warning C4018: '<': signed/unsigned mismatch
+     1>e:\ucla\cs32\project 3\frackman\studentworld.cpp(313): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
+         Generating Code...
+         Compiling...
          Actor.cpp
          Generating Code...
        Link:
@@ -18,4 +21,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.76
+Time Elapsed 00:00:03.46
