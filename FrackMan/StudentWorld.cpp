@@ -250,8 +250,8 @@ int StudentWorld::squirtCollisions(Squirt *s) {
 	for (unsigned int i = 0; i < actors.size(); i++) {
 		if (collides(s, actors[i], 3.0)) {
 			if (actors[i]->getType() == Actor::BOULDER) return Actor::SELF_DIED;
-			Protester *p = dynamic_cast<Protester*>(actors[i]);
-			if (p->getType() == Actor::REGPROTESTER || p->getType() == Actor::HCOREPROTESTER) {
+			if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
+				Protester *p = dynamic_cast<Protester*>(actors[i]);
 				dead = true;
 				if (p->decHealth(2)) { //if this protester has died
 					playSound(SOUND_PROTESTER_GIVE_UP);
