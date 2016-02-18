@@ -17,13 +17,9 @@ public:
 	void setUpdateMovable() { lastX = -1; lastY = -1; m_updatedMovable = false; }
 	//resets lastX, lastY, and updateMovable because shortest paths much be recalculated now
 
-	bool isMovable(int x, int y) { 
-		updateMovable(); 
-		if (x < 0 || x > 60 || y < 0 || y > 60) return false;
-		return movable[x][y]; 
-	}
+	bool isMovable(int x, int y);
 
-/*	///DEBUGGING!!!!!!
+	/*///DEBUGGING!!!!!!
 	#include <iostream>
 	void printMovable() {
 		for (int i = 63; i >= 0; i--) { 

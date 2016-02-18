@@ -48,7 +48,7 @@ static const double FONT_SCALEDOWN = 760.0;
 static const double SCORE_Y = 3.8;
 static const double SCORE_Z = -10;
 
-static const int MS_PER_FRAME = 1;
+static const int MS_PER_FRAME = 0;
 
 static const double PI = 4 * atan(1.0);
 

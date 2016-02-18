@@ -19,6 +19,12 @@ bool BFSSearch::search(GraphObject *ob, int x, int y, GraphObject::Direction &di
 	return straightLine[ob->getX()][ob->getY()];
 }
 
+bool BFSSearch::isMovable(int x, int y) {
+	updateMovable();
+	if (x < 0 || x > 60 || y < 0 || y > 60) return false;
+	return movable[x][y];
+}
+
 void BFSSearch::update(int sx, int sy) {
 	if (!m_updatedMovable) updateMovable(); //if movable hasn't been updated, update it
 	//init directions and shortest paths
@@ -76,7 +82,8 @@ void BFSSearch::update(int sx, int sy) {
 }
 
 void BFSSearch::updateMovable() {
-	sWorld->updateMovable(movable);
+	if (m_updatedMovable) return;
+	sWorld->updateMovable(movable); //asks for Student World to update movable for it (since BFSSearch doesn't know anything about oil field's contents)
 	m_updatedMovable = true;
 }
 
@@ -124,7 +131,7 @@ int Boulder::doSomething() {
 
 //GoldNugget functions
 GoldNugget::GoldNugget(int x, int y, bool isVisible, bool isPlayerPickable, bool isPermanent, StudentWorld *sw) : Actor(IID_GOLD, x, y, right, 1.0, 2, GOLDNUGGET, sw), ticks(100) { 
-	setVisible(true); 
+	setVisible(isVisible); 
 	if (isPlayerPickable) state = stable;
 	else state = temporary;
 }
@@ -145,7 +152,7 @@ int GoldNugget::doSomething() {
 //barrel visibility always false
 
 //OilBarrel functions
-OilBarrel::OilBarrel(int x, int y, StudentWorld *sw) : Actor(IID_BARREL, x, y, right, 1.0, 2, OILBARREL, sw) { setVisible(true); }
+OilBarrel::OilBarrel(int x, int y, StudentWorld *sw) : Actor(IID_BARREL, x, y, right, 1.0, 2, OILBARREL, sw) { setVisible(false); }
 int OilBarrel::doSomething() {
 	//if it collides with frackman then tell the level that he struck oil
 	return getStudentWorld()->oilBarrelCollisions(this); //return appropriate value depending on whether it collided and found all oil

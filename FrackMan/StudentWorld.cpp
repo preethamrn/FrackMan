@@ -155,7 +155,7 @@ void StudentWorld::useGold() {
 bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) {
 	if (ob1 == ob2) return false; //check for aliasing. In this universe I don't collide with myself. Deal with it. (because boulder would always break immediately otherwise)
 	double dx = ob1->getX() - ob2->getX(), dy = ob1->getY() - ob2->getY();
-	return (sqrt(dx*dx + dy*dy)) <= radius;
+	return (dx*dx + dy*dy <= radius*radius);
 }
 
 //function called by a BFSSearch to update its movable positions. Processed by StudentWorld to get positions of dirt and boulders
@@ -177,7 +177,7 @@ void StudentWorld::updateMovable(bool movable[][64]) {
 		if (b != nullptr) {
 			for (int x = -4; x <= 4; x++) {
 				for (int y = -4; y <= 4; y++) {
-					if (sqrt(x*x + y*y) <= 3.0) movable[b->getX() + x][b->getY() + y] = false; //position is within boulder's hitbox
+					if (x*x + y*y <= 9.0) movable[b->getX() + x][b->getY() + y] = false; //position is within boulder's hitbox
 				}
 			}
 		}
@@ -323,7 +323,7 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 			Actor *a = *it;
 			int dx = x - a->getX();
 			int dy = y - a->getY();
-			dist = fmin(sqrt(dx*dx + dy*dy), dist);
+			dist = fmin(dx*dx + dy*dy, dist*dist);
 		}
 	} while (dist <= 6.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft 
 														   ///DEBUGGING (boulders spawn inside minshaft too?) - this doesn't
