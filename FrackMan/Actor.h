@@ -23,7 +23,7 @@ public:
 		return movable[x][y]; 
 	}
 
-	///DEBUGGING!!!!!!
+/*	///DEBUGGING!!!!!!
 	#include <iostream>
 	void printMovable() {
 		for (int i = 63; i >= 0; i--) { 
@@ -36,10 +36,11 @@ public:
 				case GraphObject::Direction::left: std::cout << 'l'; break;
 				case GraphObject::Direction::none: std::cout << 'x'; break;
 				}
+				//std::cout << straightLine[j][i];
 			std::cout << std::endl;
 		} 
 		for (int i = 0; i < 64; i++) std::cout << '-'; std::cout << std::endl;
-	} ///DEBUGGING!!!!
+	} ///DEBUGGING!!!!*/
 private:
 	bool movable[64][64];
 	GraphObject::Direction shortestPathDirection[64][64];
@@ -186,7 +187,6 @@ class HardcoreProtester : public Protester {
 public:
 	HardcoreProtester(int x, int y, int t, int m, StudentWorld *sw);
 	virtual ~HardcoreProtester() {}
-	virtual int doSomething(); 
 private:
 	int chaseDist;
 	virtual bool tryChasingFrackman();

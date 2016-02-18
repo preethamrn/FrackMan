@@ -39,6 +39,7 @@ void BFSSearch::update(int sx, int sy) {
 	pointQueue.push(Point(sx, sy));
 	shortestPathDirection[sx][sy] = GraphObject::Direction::none;
 	shortestPathLength[sx][sy] = 0;
+	straightLine[sx][sy] = true;
 
 	//Queue based search for most optimal path
 	while (!pointQueue.empty()) {
@@ -46,25 +47,26 @@ void BFSSearch::update(int sx, int sy) {
 		int x = curr.x(), y = curr.y();
 
 		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::Direction::none) {
-			if (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::down) straightLine[x][y + 1] = true;
+			//if the current point is reachable in a straight line and the point after is in the same direction then it is also reachable in a straight line
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::down)) straightLine[x][y + 1] = true;
 			pointQueue.push(Point(x, y + 1)); //up
 			shortestPathDirection[x][y + 1] = GraphObject::Direction::down;
 			shortestPathLength[x][y + 1] = shortestPathLength[x][y] + 1;
 		}
 		if (y > 0 && movable[x][y - 1] && shortestPathDirection[x][y - 1] == GraphObject::Direction::none) {
-			if (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::up) straightLine[x][y - 1] = true;
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::up)) straightLine[x][y - 1] = true;
 			pointQueue.push(Point(x, y - 1)); //down
 			shortestPathDirection[x][y - 1] = GraphObject::Direction::up;
 			shortestPathLength[x][y - 1] = shortestPathLength[x][y] + 1;
 		}
 		if (x < nRows - 1 && movable[x + 1][y] && shortestPathDirection[x + 1][y] == GraphObject::Direction::none) {
-			if (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::left) straightLine[x + 1][y] = true;
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::left)) straightLine[x + 1][y] = true;
 			pointQueue.push(Point(x + 1, y)); //right
 			shortestPathDirection[x + 1][y] = GraphObject::Direction::left;
 			shortestPathLength[x + 1][y] = shortestPathLength[x][y] + 1;
 		}
 		if (x > 0 && movable[x - 1][y] && shortestPathDirection[x - 1][y] == GraphObject::Direction::none) {
-			if (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::right) straightLine[x - 1][y] = true;
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::right)) straightLine[x - 1][y] = true;
 			pointQueue.push(Point(x - 1, y)); //left
 			shortestPathDirection[x - 1][y] = GraphObject::Direction::right;
 			shortestPathLength[x - 1][y] = shortestPathLength[x][y] + 1;
@@ -207,8 +209,10 @@ void Protester::changeDir(Direction d) {
 	if ((getDirection() == right || getDirection() == left) && (d == up || d == down) || (getDirection() == up || getDirection() == down) && (d == right || d == left))
 		stepsSincePerp = 0; //new direction is perpendicular to current direction
 	else stepsSincePerp++; //new direction is parallel to current direction (so increase steps since perpendicular)
+	if (getDirection() != d) {
+		numStepsInDir = 0; 
+	}
 	setDirection(d);
-	numStepsInDir = 0;
 }
 bool Protester::moveDir(Direction d) {
 	int x = getX(), y = getY();
@@ -238,20 +242,20 @@ int Protester::doSomething() {
 	if (getStudentWorld()->collides(this, getStudentWorld()->getFrackMan(), 4.0)) {
 		getStudentWorld()->playSound(SOUND_PROTESTER_YELL);
 		if(getStudentWorld()->getFrackMan()->decHealth(2)) return PLAYER_DIED;
-		ticks = 15 * waitingTicks; //15 non-resting ticks
+		ticks = 16 * waitingTicks + 1; //15 non-resting ticks
 		return CONTINUE;
 	}
 	//check if frackman is in a straight line to the protester
 	FrackMan *f = getStudentWorld()->getFrackMan();
 	Direction dir = none; int length = -1;
 	if (getStudentWorld()->getSearch()->search(this, f->getX(), f->getY(), dir, length)) {
-		//frackman is in a straight line
+		//frackman is reachable in a straight line
 		moveDir(dir);
 		return CONTINUE;
 	}
 	//try chasing frackman if protester can trace frackman's cellphone signal
 	if(tryChasingFrackman()) return CONTINUE; //if it could chase frackman 
-	
+
 	//try walking in some direction
 	if (!numStepsInDir) {
 		//looks for a new direction that the protester can move into
@@ -265,7 +269,7 @@ int Protester::doSomething() {
 				randInt == 3 && getDirection() == left) continue; //choose a new direction so ignore randInt if direction is the same*/
 			dx = randInt == 2 ? 1 : randInt == 3 ? -1 : 0;
 			dy = randInt == 0 ? 1 : randInt == 1 ? -1 : 0;
-		} while (getStudentWorld()->getSearch()->isMovable(getX()+dx, getY()+dy));
+		} while (!getStudentWorld()->getSearch()->isMovable(getX()+dx, getY()+dy));
 		switch (randInt) {
 		case 0: changeDir(up); break;
 		case 1: changeDir(down); break;
@@ -277,11 +281,13 @@ int Protester::doSomething() {
 	}
 	if (stepsSincePerp >= 200) {
 		if (getDirection() == up || getDirection() == down) {
-			if (getX() < 30) if (getStudentWorld()->getSearch()->isMovable(getX() + 1, getY())) changeDir(right);
-			else if (getStudentWorld()->getSearch()->isMovable(getX() - 1, getY())) changeDir(left);
+			if (getX() < 30) {
+				if (getStudentWorld()->getSearch()->isMovable(getX() + 1, getY())) changeDir(right);
+			} else if (getStudentWorld()->getSearch()->isMovable(getX() - 1, getY())) changeDir(left);
 		} else if (getDirection() == right || getDirection() == left) {
-			if (getY() < 30) if (getStudentWorld()->getSearch()->isMovable(getX(), getY()+1)) changeDir(up);
-			else if (getStudentWorld()->getSearch()->isMovable(getX(), getY()-1)) changeDir(down);
+			if (getY() < 30) {
+				if (getStudentWorld()->getSearch()->isMovable(getX(), getY() + 1)) changeDir(up);
+			} else if (getStudentWorld()->getSearch()->isMovable(getX(), getY() - 1)) changeDir(down);
 		}
 		numStepsInDir = rand() % 53 + 8;
 	}
@@ -296,14 +302,10 @@ RegularProtester::RegularProtester(int x, int y, int t, StudentWorld *sw) : Prot
 
 //HardcoreProtester functions
 HardcoreProtester::HardcoreProtester(int x, int y, int t, int m, StudentWorld *sw) : Protester(IID_HARD_CORE_PROTESTER, x, y, t, 20, HCOREPROTESTER, sw), chaseDist(m) {}
-int HardcoreProtester::doSomething() {
-	int ret = Protester::doSomething();
-	return ret;
-}
 bool HardcoreProtester::tryChasingFrackman() {
 	int l = -1; Direction d = none; FrackMan *f = getStudentWorld()->getFrackMan();
 	getStudentWorld()->getSearch()->search(this, f->getX(), f->getY(), d, l);
-	if (l <= chaseDist) {
+	if (l != -1 && l <= chaseDist) {
 		moveDir(d);
 		return true;
 	}
@@ -380,9 +382,9 @@ int FrackMan::doSomething() {
 			}
 			break;
 		
-		///DEBUGGING!!!!!
+		/*///DEBUGGING!!!!!
 		case 'v': case 'V': sWorld->getSearch()->printMovable(); break; ///DEBUGGING!!!!!
-		///DEBUGGING!!!!!
+		///DEBUGGING!!!!!*/
 		
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: moveTo(originalX, originalY); break;

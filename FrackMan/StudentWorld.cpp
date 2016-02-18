@@ -1,4 +1,6 @@
 #include "StudentWorld.h"
+#include "Actor.h"
+#include "GraphObject.h"
 #include <string>
 #include <cmath>
 
@@ -69,7 +71,8 @@ int StudentWorld::move() {
 	//checking to add protester
 	if (ticks >= max(25, 200 - getLevel())) {
 		if (nProtesters < min(15, 2 + getLevel()*1.5)) {
-			if ((rand() % min(90, getLevel() * 10 + 30)) == 0) actors.push_back(new HardcoreProtester(60, 60, max(0, 3 - getLevel() / 4), 16 + 2*getLevel(), this));
+			int prob = min(90, getLevel() * 10 + 30);
+			if (rand() % 100 < prob) actors.push_back(new HardcoreProtester(60, 60, max(0, 3 - getLevel() / 4), 16 + 2*getLevel(), this));
 			else actors.push_back(new RegularProtester(60, 60, max(0, 3 - getLevel() / 4), this));
 			nProtesters++;
 			ticks = 0;
