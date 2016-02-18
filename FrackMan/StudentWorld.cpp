@@ -35,7 +35,6 @@ int StudentWorld::init() {
 	return GWSTATUS_CONTINUE_GAME;
 }
 
-
 int StudentWorld::move() {
 	//display stat text at top of screen
 	setGameStatText("Scr: " + getScoreText() + 

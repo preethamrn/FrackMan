@@ -17,26 +17,8 @@ public:
 	void setUpdateMovable() { lastX = -1; lastY = -1; m_updatedMovable = false; }
 	//resets lastX, lastY, and updateMovable because shortest paths much be recalculated now
 
-	bool isMovable(int x, int y);
+	bool isMovable(int x, int y); //checks if a position is open to move into
 
-	/*///DEBUGGING!!!!!!
-	#include <iostream>
-	void printMovable() {
-		for (int i = 63; i >= 0; i--) { 
-			for (int j = 0; j < 64; j++)
-				//std::cout << movable[j][i];
-				switch (shortestPathDirection[j][i]) {
-				case GraphObject::Direction::right: std::cout << 'r'; break;
-				case GraphObject::Direction::up: std::cout << 'u'; break;
-				case GraphObject::Direction::down: std::cout << 'd'; break;
-				case GraphObject::Direction::left: std::cout << 'l'; break;
-				case GraphObject::Direction::none: std::cout << 'x'; break;
-				}
-				//std::cout << straightLine[j][i];
-			std::cout << std::endl;
-		} 
-		for (int i = 0; i < 64; i++) std::cout << '-'; std::cout << std::endl;
-	} ///DEBUGGING!!!!*/
 private:
 	bool movable[64][64];
 	GraphObject::Direction shortestPathDirection[64][64];

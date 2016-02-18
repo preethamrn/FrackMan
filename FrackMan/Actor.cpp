@@ -147,9 +147,6 @@ int GoldNugget::doSomething() {
 	}
 	return CONTINUE;
 }
-///DEBUGGING
-//nuggets visibility depends on isVisible
-//barrel visibility always false
 
 //OilBarrel functions
 OilBarrel::OilBarrel(int x, int y, StudentWorld *sw) : Actor(IID_BARREL, x, y, right, 1.0, 2, OILBARREL, sw) { setVisible(false); }
@@ -270,10 +267,10 @@ int Protester::doSomething() {
 		int randInt = -1, dx = 0, dy = 0;
 		do {
 			randInt = rand() % 4; //0->up, 1->down, 2->right, 3->left
-			/*if (randInt == 0 && getDirection() == up ||
+			if (randInt == 0 && getDirection() == up ||
 				randInt == 1 && getDirection() == down ||
 				randInt == 2 && getDirection() == right ||
-				randInt == 3 && getDirection() == left) continue; //choose a new direction so ignore randInt if direction is the same*/
+				randInt == 3 && getDirection() == left) continue; //choose a new direction so ignore randInt if direction is the same
 			dx = randInt == 2 ? 1 : randInt == 3 ? -1 : 0;
 			dy = randInt == 0 ? 1 : randInt == 1 ? -1 : 0;
 		} while (!getStudentWorld()->getSearch()->isMovable(getX()+dx, getY()+dy));
@@ -388,10 +385,6 @@ int FrackMan::doSomething() {
 				sWorld->useSonar();
 			}
 			break;
-		
-		/*///DEBUGGING!!!!!
-		case 'v': case 'V': sWorld->getSearch()->printMovable(); break; ///DEBUGGING!!!!!
-		///DEBUGGING!!!!!*/
 		
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: moveTo(originalX, originalY); break;
