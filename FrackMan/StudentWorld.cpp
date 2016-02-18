@@ -1,3 +1,9 @@
+///DEBUGGING///
+//YOU'RE IN HAX NOW
+//DON'T ADD IMPORTANT FUNCTIONALITY
+///DEBUGGING///
+
+
 #include "StudentWorld.h"
 #include "Actor.h"
 #include "GraphObject.h"
