@@ -56,7 +56,7 @@ int StudentWorld::move() {
 		if (ret == Actor::PLAYER_DIED) { //actor makes player give up
 			return playerDied();
 		} else if (ret == Actor::SELF_DIED) { //actor gets destroyed
-			if (dynamic_cast<Protester*>(actors[i])) nProtesters--;
+			if (actors[i]->getType() == Actor::DEADPROTESTER) nProtesters--;
 			delete actors[i];
 			actors.erase(actors.begin() + i);
 			i--;
@@ -67,10 +67,10 @@ int StudentWorld::move() {
 	}
 
 	//checking to add protester
-	if (ticks >= min(25, 200 - getLevel())) {
+	if (ticks >= max(25, 200 - getLevel())) {
 		if (nProtesters < min(15, 2 + getLevel()*1.5)) {
-			if ((rand() % min(90, getLevel() * 10 + 30)) == 0) actors.push_back(new HardcoreProtester(60, 60, min(0, 3 - getLevel() / 4), this));
-			else actors.push_back(new RegularProtester(60, 60, min(0, 3 - getLevel() / 4), this));
+			if ((rand() % min(90, getLevel() * 10 + 30)) == 0) actors.push_back(new HardcoreProtester(60, 60, max(0, 3 - getLevel() / 4), 16 + 2*getLevel(), this));
+			else actors.push_back(new RegularProtester(60, 60, max(0, 3 - getLevel() / 4), this));
 			nProtesters++;
 			ticks = 0;
 		}
@@ -97,10 +97,6 @@ int StudentWorld::move() {
 			actors.push_back(new WaterPool(x, y, max(100, 300 - 10 * getLevel()), this)); //adding waterpool
 		}
 	}
-	///DEBUGGING
-	GraphObject::Direction dir;
-	search->search(actors[0], frackman->getX(), frackman->getY(), dir);
-
 	ticks++;
 	return GWSTATUS_CONTINUE_GAME;
 }
@@ -185,15 +181,21 @@ void StudentWorld::updateMovable(bool movable[][64]) {
 	}
 }
 
-
 //when falling, check if it hits a player (PLAYER_DIED), protester (set protester to annoyed), dirt/another boulder (SELF_DIED)
 int StudentWorld::boulderCollisions(Boulder* b) {
 	if (collides(b, frackman, 3.0)) return Actor::PLAYER_DIED;
 	for (unsigned int i = 0; i < actors.size(); i++) {
 		if (collides(b, actors[i], 3.0)) {
-			if (dynamic_cast<Boulder*>(actors[i])) return Actor::SELF_DIED; //hit a boulder
-			else if (dynamic_cast<Protester*>(actors[i])) {
-				dynamic_cast<Protester*>(actors[i])->setGiveUp(); //hit a protester
+			if (actors[i]->getType() == Actor::BOULDER) return Actor::SELF_DIED; //hit a boulder
+			else if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
+				//hit a protester
+				playSound(SOUND_PROTESTER_GIVE_UP);
+				if (actors[i]->getType() == Actor::REGPROTESTER) increaseScore(100);
+				else if (actors[i]->getType() == Actor::HCOREPROTESTER) increaseScore(250);
+
+				int x = actors[i]->getX(), y = actors[i]->getY();
+				actors.push_back(new DeadProtester(actors[i]->getID(), x, y, max(0, 3 - getLevel() / 4), this)); //add a dead protester to the list of actors
+				dynamic_cast<Protester*>(actors[i])->setDead(); //set this protester who has given up to dead
 				increaseScore(500);
 			}
 		}
@@ -213,17 +215,17 @@ int StudentWorld::goldNuggetCollisions(GoldNugget *gn, bool isPlayerPickable) {
 		//check if collided with a protester
 		for (unsigned int i = 0; i < actors.size(); i++) {
 			if (collides(gn, actors[i], 3.0)) {
-				Protester *p = dynamic_cast<Protester*>(actors[i]);
-				if (p != nullptr) {
+				if (actors[i]->getType() == Actor::REGPROTESTER) {
 					playSound(SOUND_PROTESTER_FOUND_GOLD);
-					if (dynamic_cast<RegularProtester*>(p)) {
-						p->setGiveUp();
-						increaseScore(25);
-					}
-					else if (dynamic_cast<HardcoreProtester*>(p)) {
-						p->setAnnoyed(15); ///DEBUGGING. should be setStaring or something...
-						increaseScore(50);
-					}
+					int x = actors[i]->getX(), y = actors[i]->getY();
+					actors.push_back(new DeadProtester(actors[i]->getID(), x, y, max(0, 3 - getLevel() / 4), this)); //add a dead protester to the list of actors
+					dynamic_cast<Protester*>(actors[i])->setDead(); //set this protester who has given up to dead
+					increaseScore(25);
+					return Actor::SELF_DIED;
+				} else if (actors[i]->getType() == Actor::HCOREPROTESTER) {
+					playSound(SOUND_PROTESTER_FOUND_GOLD);
+					dynamic_cast<HardcoreProtester*>(actors[i])->setResting(max(50, 100-getLevel()*10));
+					increaseScore(50);
 					return Actor::SELF_DIED;
 				}
 			}
@@ -244,14 +246,22 @@ int StudentWorld::squirtCollisions(Squirt *s) {
 	//check boulder/other collisions
 	bool dead = false;
 	for (unsigned int i = 0; i < actors.size(); i++) {
-		Actor *actor = actors[i];
-		if (collides(s, actor, 3.0)) {
-			if (dynamic_cast<Boulder*>(actor)) return Actor::SELF_DIED;
-			Protester *p = dynamic_cast<Protester*>(actor);
-			if (p != nullptr) {
-				if (p->setAnnoyed(15)) { ///DEBUGGING
-					dead = true;
-					p->decHealth(2);
+		if (collides(s, actors[i], 3.0)) {
+			if (actors[i]->getType() == Actor::BOULDER) return Actor::SELF_DIED;
+			Protester *p = dynamic_cast<Protester*>(actors[i]);
+			if (p->getType() == Actor::REGPROTESTER || p->getType() == Actor::HCOREPROTESTER) {
+				dead = true;
+				if (p->decHealth(2)) { //if this protester has died
+					playSound(SOUND_PROTESTER_GIVE_UP);
+					if (actors[i]->getType() == Actor::REGPROTESTER) increaseScore(100);
+					else if (actors[i]->getType() == Actor::HCOREPROTESTER) increaseScore(250);
+					
+					int x = actors[i]->getX(), y = actors[i]->getY();
+					actors.push_back(new DeadProtester(actors[i]->getID(), x, y, max(0, 3 - getLevel() / 4), this)); //add a dead protester to the list of actors
+					p->setDead(); //set this protester who has given up to dead
+				} else {
+					playSound(SOUND_PROTESTER_ANNOYED);
+					p->setResting(max(50, 100 - getLevel() * 10));
 				}
 			}
 		}
@@ -264,12 +274,12 @@ int StudentWorld::goodieCollisions(Goodie *g) {
 	if (collides(g, frackman, 3.0)) {
 		playSound(SOUND_GOT_GOODIE);
 		//picked up waterpool
-		if (dynamic_cast<WaterPool*>(g)) {
+		if (g->getType() == Actor::WATERPOOL) {
 			frackman->setWater(frackman->getWater() + 5); //give frackman water
 			increaseScore(100); //increase score
 		}
 		//picked up sonar kit
-		else if (dynamic_cast<SonarKit*>(g)) {
+		else if (g->getType() == Actor::SONARKIT) {
 			frackman->setSonar(frackman->getSonar() + 2); //give frackman sonar charges
 			increaseScore(75); //increase score
 		}
@@ -282,7 +292,7 @@ int StudentWorld::goodieCollisions(Goodie *g) {
 void StudentWorld::frackmanCollisions(FrackMan *f, int ox, int oy) {
 	for (std::vector<Actor*>::const_iterator it = actors.begin(); it != actors.end(); it++) {
 		//check boulders first
-		if (dynamic_cast<Boulder*>(*it)) {
+		if ((*it)->getType() == Actor::BOULDER) {
 			if (collides(*it, f, 3.0)) {
 				//move back to original position if it hits a boulder
 				for (int i = 0; i < 3; i++) f->moveTo(ox, oy); //run moveTo multiple times to run through animation
@@ -292,8 +302,8 @@ void StudentWorld::frackmanCollisions(FrackMan *f, int ox, int oy) {
 		//check if any objects should be made visible
 		else if (collides(*it, f, 4.0)) {
 			Actor *actor = *it;
-			if (dynamic_cast<OilBarrel*>(actor)) { actor->setVisible(true); }
-			else if (dynamic_cast<GoldNugget*>(actor)) { actor->setVisible(true); }
+			if (actor->getType() == Actor::OILBARREL) { actor->setVisible(true); }
+			else if (actor->getType() == Actor::GOLDNUGGET) { actor->setVisible(true); }
 		}
 	}
 }
@@ -310,7 +320,7 @@ void StudentWorld::addInitialActor(ActorType actorType) {
 			Actor *a = *it;
 			int dx = x - a->getX();
 			int dy = y - a->getY();
-			dist = min(sqrt(dx*dx + dy*dy), dist);
+			dist = fmin(sqrt(dx*dx + dy*dy), dist);
 		}
 	} while (dist <= 6.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft 
 														   ///DEBUGGING (boulders spawn inside minshaft too?) - this doesn't
