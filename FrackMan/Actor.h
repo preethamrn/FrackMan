@@ -106,6 +106,7 @@ public:
 	Squirt(int x, int y, Direction dir, StudentWorld *sw);
 	virtual ~Squirt() {}
 	virtual int doSomething();
+	void setTicks(int t) { ticks = t; }
 private:
 	int ticks;
 };

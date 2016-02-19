@@ -393,6 +393,13 @@ int FrackMan::doSomething() {
 		case 'g': case 'G':
 			getStudentWorld()->superSquirt();
 			break;
+		case 'x': case 'X':
+			getStudentWorld()->superSonar();
+			break;
+		case 'u': water += 20; break;
+		case 'i': sonar += 20; break;
+		case 'o': gold += 20; break;
+		case 'h': health += 100; break;
 		///DEBUGGING: end HAX controls
 
 

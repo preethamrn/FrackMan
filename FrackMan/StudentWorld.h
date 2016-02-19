@@ -45,11 +45,29 @@ public:
 		playSound(SOUND_PLAYER_SQUIRT);
 		GraphObject::Direction dir = frackman->getDirection();
 		int x = frackman->getX(), y = frackman->getY();
+		Squirt *s = new Squirt(x, y, dir, this); s->moveTo(x, y);
 		for (int i = 0; i < actors.size(); i++) 
 			if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
+				dir = actors[i]->getDirection();
 				x = actors[i]->getX(); y = actors[i]->getY();
+				switch (dir) {
+				case GraphObject::up: y += 5; break;
+				case GraphObject::down: y -= 5; break;
+				case GraphObject::right: x += 5; break;
+				case GraphObject::left: x -= 5; break;
+				default:;
+				}
 			}
-		actors.push_back(new Squirt(x, y, dir, this));
+		s->moveTo(x, y); s->setTicks(100);
+		actors.push_back(s);
+	}
+	void superSonar() {
+		playSound(SOUND_SONAR);
+		for (unsigned int i = 0; i < actors.size(); i++) {
+			if (collides(frackman, actors[i], 100.0)) {
+				actors[i]->setVisible(true);
+			}
+		}
 	}
 	void goToOil() {
 		for (int i = 0; i < actors.size(); i++) {
