@@ -382,7 +382,6 @@ int FrackMan::doSomething() {
 				getStudentWorld()->useSonar();
 			}
 			break;
-		
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
 		default: moveTo(originalX, originalY); break;
 		}
