@@ -103,12 +103,21 @@ public:
 //Squirt
 class Squirt : public Actor {
 public:
-	Squirt(int x, int y, Direction dir, StudentWorld *sw);
+	Squirt(int x, int y, Direction dir, int t, StudentWorld *sw);
 	virtual ~Squirt() {}
 	virtual int doSomething();
-	void setTicks(int t) { ticks = t; }
 private:
 	int ticks;
+	virtual Direction redirect();
+};
+
+//SuperSquirt
+class SuperSquirt : public Squirt {
+public:
+	SuperSquirt(int x, int y, StudentWorld *sw);
+	virtual ~SuperSquirt() {}
+private:
+	virtual Direction redirect();
 };
 
 //Goodie

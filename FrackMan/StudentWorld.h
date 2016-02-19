@@ -41,25 +41,21 @@ public:
 
 	///DEBUGGING: HAX functions
 
+	//helper function for SuperSquirt
+	Actor* getFirstProtester() {
+		Actor *target = nullptr;
+		for (int i = 0; i < actors.size(); i++) {
+			if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
+				target = actors[i]; break;
+			}
+		}
+		return target;
+	}
 	void superSquirt() {
 		playSound(SOUND_PLAYER_SQUIRT);
 		GraphObject::Direction dir = frackman->getDirection();
-		int x = frackman->getX(), y = frackman->getY();
-		Squirt *s = new Squirt(x, y, dir, this); s->moveTo(x, y);
-		for (int i = 0; i < actors.size(); i++) 
-			if (actors[i]->getType() == Actor::REGPROTESTER || actors[i]->getType() == Actor::HCOREPROTESTER) {
-				dir = actors[i]->getDirection();
-				x = actors[i]->getX(); y = actors[i]->getY();
-				switch (dir) {
-				case GraphObject::up: y += 5; break;
-				case GraphObject::down: y -= 5; break;
-				case GraphObject::right: x += 5; break;
-				case GraphObject::left: x -= 5; break;
-				default:;
-				}
-			}
-		s->moveTo(x, y); s->setTicks(100);
-		actors.push_back(s);
+		int x = frackman->getX(), y = frackman->getY();		
+		actors.push_back(new SuperSquirt(x, y, this));
 	}
 	void superSonar() {
 		playSound(SOUND_SONAR);
@@ -78,7 +74,6 @@ public:
 		}
 	}
 	int nextLevel() { return Actor::LEVEL_SUCCESS; }
-
 	///DEBUGGING: end HAX functions
 
 

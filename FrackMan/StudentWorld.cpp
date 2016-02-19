@@ -150,7 +150,7 @@ void StudentWorld::useWater() {
 	case GraphObject::left: x -= 3; break;
 	default:;
 	}
-	actors.push_back(new Squirt(x, y, dir, this));
+	actors.push_back(new Squirt(x, y, dir, 5, this));
 }
 
 void StudentWorld::useGold() {

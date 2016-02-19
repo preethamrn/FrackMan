@@ -156,10 +156,10 @@ int OilBarrel::doSomething() {
 }
 
 //Squirt functions
-Squirt::Squirt(int x, int y, Direction dir, StudentWorld *sw) : Actor(IID_WATER_SPURT, x, y, dir, 1.0, 2, SQUIRT, sw), ticks(5) { setVisible(true); }
+Squirt::Squirt(int x, int y, Direction dir, int t, StudentWorld *sw) : Actor(IID_WATER_SPURT, x, y, dir, 1.0, 2, SQUIRT, sw), ticks(t) { setVisible(true); }
 int Squirt::doSomething() {
 	if (!ticks) return SELF_DIED;
-	
+	setDirection(redirect());
 	//go through all protester collisions before deciding whether to kill the squirt
 	Direction dir = getDirection();
 	int x = getX(), y = getY();
@@ -181,6 +181,18 @@ int Squirt::doSomething() {
 
 	ticks--;
 	return CONTINUE;
+}
+GraphObject::Direction Squirt::redirect() {
+	return getDirection();
+}
+
+//SuperSquirt functions
+SuperSquirt::SuperSquirt(int x, int y, StudentWorld *sw) : Squirt(x, y, GraphObject::Direction::none, 1000, sw) {}
+GraphObject::Direction SuperSquirt::redirect() {
+	Direction dir = getDirection(); int l = -1;
+	Actor *target = getStudentWorld()->getFirstProtester();
+	if(target) getStudentWorld()->getSearch()->search(this, target->getX(), target->getY(), dir, l);
+	return dir;
 }
 
 //Goodie functions
