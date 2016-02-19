@@ -19,16 +19,7 @@ int StudentWorld::init() {
 			else dirt[i][j] = new Dirt(i, j, this);
 		}
 	}
-	//initializing barrels of oil, boulders, and gold nuggets
-	int nBoulders = min(getLevel() / 2 + 2, 6);
-	int nBarrels = min(2 + getLevel(), 20);
-	int nNuggets = max(5 - getLevel() / 2, 2);
-	for (int i = 0; i < nBoulders; i++) addInitialActor(Actor::BOULDER);
-	for (int i = 0; i < nBarrels; i++) addInitialActor(Actor::OILBARREL);
-	for (int i = 0; i < nNuggets; i++) addInitialActor(Actor::GOLDNUGGET);
-
-	ticks = max(25, 200 - getLevel()); //initial ticks (to start off with a protestor on first tick)
-	nOilBarrels = nBarrels; //set number of barrels
+	nOilBarrels = 0; 
 	nProtesters = 0; //set initial number of protesters
 	frackman = new FrackMan(this); //create new FrackMan
 
@@ -52,53 +43,8 @@ int StudentWorld::move() {
 		return GWSTATUS_PLAYER_DIED;
 	}
 
-	for (unsigned int i = 0; i < actors.size(); i++) {
-		int ret = actors[i]->doSomething(); //store value returned by actor after doing something
-		if (ret == Actor::PLAYER_DIED) { //actor makes player give up
-			return playerDied();
-		} else if (ret == Actor::SELF_DIED) { //actor gets destroyed
-			if (actors[i]->getType() == Actor::DEADPROTESTER) nProtesters--;
-			delete actors[i];
-			actors.erase(actors.begin() + i);
-			i--;
-		} else if (ret == Actor::LEVEL_SUCCESS) { //level success (ie. if collected all barrels)
-			playSound(SOUND_FINISHED_LEVEL);
-			return GWSTATUS_FINISHED_LEVEL;
-		}
-	}
+	//actors would doSomething here (but removed because cleanUp was throwing exceptions)
 
-	//checking to add protester
-	if (ticks >= max(25, 200 - getLevel())) {
-		if (nProtesters < min(15, 2 + getLevel()*1.5)) {
-			int prob = min(90, getLevel() * 10 + 30);
-			if (rand() % 100 < prob) actors.push_back(new HardcoreProtester(60, 60, max(0, 3 - getLevel() / 4), 16 + 2*getLevel(), this));
-			else actors.push_back(new RegularProtester(60, 60, max(0, 3 - getLevel() / 4), this));
-			nProtesters++;
-			ticks = 0;
-		}
-	}
-	//checking to add waterpool or sonar kit
-	if ((rand() % (getLevel() * 25 + 300)) == 0) {
-		if ((rand() % 5) == 0) actors.push_back(new SonarKit(0, 60, max(100, 300 - 10 * getLevel()), this)); //adding sonar kit
-		else {
-			//finding position for waterpool
-			int x, y;
-			do {
-				x = rand() % 61;
-				y = rand() % 57; ///DEBUGGING? position of waterpool on surface possible?
-				bool flag = false;
-				for (int i = x; i < x + 4; i++) {
-					for (int j = y; j < y + 4; j++) if (dirt[i][j] != nullptr) {
-						flag = true;
-						break;
-					}
-					if (flag) break;
-				}
-				if (!flag) break;
-			} while (true);
-			actors.push_back(new WaterPool(x, y, max(100, 300 - 10 * getLevel()), this)); //adding waterpool
-		}
-	}
 	ticks++;
 	return GWSTATUS_CONTINUE_GAME;
 }
