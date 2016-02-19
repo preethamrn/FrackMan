@@ -32,7 +32,7 @@ private:
 	//first updates movable if not yet updated
 	//updates shortest path arrays to contain shortest path to position (x,y)
 	void updateMovable();
-	//updates movable array to show where protesters can move
+	//tells StudentWorld to update movable array to show where protesters can move
 
 	//Auxiliary class for queue based search
 	class Point {

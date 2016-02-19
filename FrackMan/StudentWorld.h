@@ -29,7 +29,7 @@ public:
 	FrackMan* getFrackMan() const { return frackman; } //used for checking protester collisions
 	BFSSearch* getSearch() const { return search; }
 	void setUpdateSearch() const { search->setUpdateMovable(); }
-	void updateMovable(bool movable[][64]);
+	void updateMovable(bool movable[64][64]);
 	bool collides(GraphObject *ob1, GraphObject *ob2, double radius) const;
 
 	int boulderCollisions(Boulder *b);
@@ -41,7 +41,7 @@ public:
 
 private:
 	std::vector<Actor*> actors; //Vector of actors
-	FrackMan* frackman; //Player pointer
+	FrackMan *frackman; //Player pointer
 	Dirt *dirt[VIEW_WIDTH][VIEW_HEIGHT]; //Array of dirt
 	BFSSearch *search;
 	int ticks, nProtesters, nOilBarrels;

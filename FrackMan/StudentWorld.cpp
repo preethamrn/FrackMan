@@ -47,10 +47,11 @@ int StudentWorld::move() {
 		"  Oil Left: " + getOilLeftText());
 	//setGameStatText(std::to_string(ticks)); ///DEBUGGING
 	
-	if (frackman->doSomething() == Actor::PLAYER_DIED) {
+	int ret = frackman->doSomething();
+	if (ret == Actor::PLAYER_DIED) {
 		decLives();
 		return GWSTATUS_PLAYER_DIED;
-	}
+	} else if (ret == Actor::LEVEL_SUCCESS) return GWSTATUS_FINISHED_LEVEL; ///DEBUGGING
 
 	for (unsigned int i = 0; i < actors.size(); i++) {
 		int ret = actors[i]->doSomething(); //store value returned by actor after doing something
@@ -99,6 +100,7 @@ int StudentWorld::move() {
 			actors.push_back(new WaterPool(x, y, max(100, 300 - 10 * getLevel()), this)); //adding waterpool
 		}
 	}
+
 	ticks++;
 	return GWSTATUS_CONTINUE_GAME;
 }
@@ -158,7 +160,7 @@ bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) c
 }
 
 //function called by a BFSSearch to update its movable positions. Processed by StudentWorld to get positions of dirt and boulders
-void StudentWorld::updateMovable(bool movable[][64]) {
+void StudentWorld::updateMovable(bool movable[64][64]) {
 	for (int x = 0; x <= 60; x++) {
 		for (int y = 0; y <= 60; y++) {
 			bool open = true;
@@ -175,7 +177,11 @@ void StudentWorld::updateMovable(bool movable[][64]) {
 		if (actors[i]->getType() == Actor::BOULDER) {
 			for (int x = -4; x <= 4; x++) {
 				for (int y = -4; y <= 4; y++) {
-					if (x*x + y*y <= 9.0) movable[actors[i]->getX() + x][actors[i]->getY() + y] = false; //position is within boulder's hitbox
+					if (x*x + y*y <= 9.0) {
+						int nx = actors[i]->getX() + x, ny = actors[i]->getY() + y;
+						if(nx >= 0 && nx < 64 && ny >= 0 && ny < 64) //make sure position is within bounds of array
+							movable[nx][ny] = false; //position is within boulder's hitbox
+					}
 				}
 			}
 		}
