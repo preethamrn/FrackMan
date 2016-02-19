@@ -46,12 +46,11 @@ int StudentWorld::move() {
 		"  Sonar: " + getSonarText() + 
 		"  Oil Left: " + getOilLeftText());
 	//setGameStatText(std::to_string(ticks)); ///DEBUGGING
-	
-	int ret = frackman->doSomething();
-	if (ret == Actor::PLAYER_DIED) {
+
+	if (frackman->doSomething() == Actor::PLAYER_DIED) {
 		decLives();
 		return GWSTATUS_PLAYER_DIED;
-	} else if (ret == Actor::LEVEL_SUCCESS) return GWSTATUS_FINISHED_LEVEL; ///DEBUGGING
+	}
 
 	for (unsigned int i = 0; i < actors.size(); i++) {
 		int ret = actors[i]->doSomething(); //store value returned by actor after doing something
