@@ -74,6 +74,26 @@ public:
 		}
 	}
 	int nextLevel() { return Actor::LEVEL_SUCCESS; }
+
+	void drawPen15() {
+		for (int i = 0; i < 64; i++) {
+			for (int j = 0; j < 64; j++) {
+				removeDirt(i, j);
+			}
+		}
+		bool draw[6][8] = { {0,1,0,0,0,0,0,0},{1,0,1,1,1,1,1,0},{0,1,0,0,0,0,0,1},{ 0,1,0,0,0,0,0,1 },{1,0,1,1,1,1,1,0},{ 0,1,0,0,0,0,0,0 } };
+		///TODO: better pen15
+		///make at least 10 pen15s on the screen
+		int x = 30, y = 30;
+		for (int i = y; i < y + 6; i++) {
+			for (int j = x; j < x + 8; j++) {
+				if (draw[i-y][j-x]) {
+					dirt[i][j] = new Dirt(i, j, this);
+				}
+			}
+		}
+		///update movable?
+	}
 	///DEBUGGING: end HAX functions
 
 

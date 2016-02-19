@@ -26,7 +26,7 @@ bool BFSSearch::isMovable(int x, int y) {
 }
 
 void BFSSearch::update(int sx, int sy) {
-	if (!m_updatedMovable) updateMovable(); //if movable hasn't been updated, update it
+	if (!m_updatedMovable || lastX != sx || lastY != sy) updateMovable(); //if movable hasn't been updated, update it
 	//init directions and shortest paths
 	for (int i = 0; i < 64; i++) {
 		for (int j = 0; j < 64; j++) {
@@ -38,12 +38,9 @@ void BFSSearch::update(int sx, int sy) {
 
 	std::queue<Point> pointQueue;
 	int nRows = 61, nCols = 61;
-	
-	if (sx < 0 || sx > nRows || sy < 0 || sy > nCols) return;
-	if (!movable[sx][sy]) return;
 
 	pointQueue.push(Point(sx, sy));
-	shortestPathDirection[sx][sy] = GraphObject::Direction::none;
+	shortestPathDirection[sx][sy] = GraphObject::none;
 	shortestPathLength[sx][sy] = 0;
 	straightLine[sx][sy] = true;
 
@@ -52,33 +49,33 @@ void BFSSearch::update(int sx, int sy) {
 		Point curr = pointQueue.front(); pointQueue.pop();
 		int x = curr.x(), y = curr.y();
 
-		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::Direction::none) {
+		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::none) {
 			//if the current point is reachable in a straight line and the point after is in the same direction then it is also reachable in a straight line
-			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::down)) straightLine[x][y + 1] = true;
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::down)) straightLine[x][y + 1] = true;
 			pointQueue.push(Point(x, y + 1)); //up
-			shortestPathDirection[x][y + 1] = GraphObject::Direction::down;
+			shortestPathDirection[x][y + 1] = GraphObject::down;
 			shortestPathLength[x][y + 1] = shortestPathLength[x][y] + 1;
 		}
-		if (y > 0 && movable[x][y - 1] && shortestPathDirection[x][y - 1] == GraphObject::Direction::none) {
-			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::up)) straightLine[x][y - 1] = true;
+		if (y > 0 && movable[x][y - 1] && shortestPathDirection[x][y - 1] == GraphObject::none) {
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::up)) straightLine[x][y - 1] = true;
 			pointQueue.push(Point(x, y - 1)); //down
-			shortestPathDirection[x][y - 1] = GraphObject::Direction::up;
+			shortestPathDirection[x][y - 1] = GraphObject::up;
 			shortestPathLength[x][y - 1] = shortestPathLength[x][y] + 1;
 		}
-		if (x < nRows - 1 && movable[x + 1][y] && shortestPathDirection[x + 1][y] == GraphObject::Direction::none) {
-			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::left)) straightLine[x + 1][y] = true;
+		if (x < nRows - 1 && movable[x + 1][y] && shortestPathDirection[x + 1][y] == GraphObject::none) {
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::left)) straightLine[x + 1][y] = true;
 			pointQueue.push(Point(x + 1, y)); //right
-			shortestPathDirection[x + 1][y] = GraphObject::Direction::left;
+			shortestPathDirection[x + 1][y] = GraphObject::left;
 			shortestPathLength[x + 1][y] = shortestPathLength[x][y] + 1;
 		}
-		if (x > 0 && movable[x - 1][y] && shortestPathDirection[x - 1][y] == GraphObject::Direction::none) {
-			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::Direction::none || shortestPathDirection[x][y] == GraphObject::Direction::right)) straightLine[x - 1][y] = true;
+		if (x > 0 && movable[x - 1][y] && shortestPathDirection[x - 1][y] == GraphObject::none) {
+			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::right)) straightLine[x - 1][y] = true;
 			pointQueue.push(Point(x - 1, y)); //left
-			shortestPathDirection[x - 1][y] = GraphObject::Direction::right;
+			shortestPathDirection[x - 1][y] = GraphObject::right;
 			shortestPathLength[x - 1][y] = shortestPathLength[x][y] + 1;
 		}
 	}
-	shortestPathDirection[sx][sy] = GraphObject::Direction::none;
+	shortestPathDirection[sx][sy] = GraphObject::none;
 }
 
 void BFSSearch::updateMovable() {
@@ -187,7 +184,7 @@ GraphObject::Direction Squirt::redirect() {
 }
 
 //SuperSquirt functions
-SuperSquirt::SuperSquirt(int x, int y, StudentWorld *sw) : Squirt(x, y, GraphObject::Direction::none, 1000, sw) {}
+SuperSquirt::SuperSquirt(int x, int y, StudentWorld *sw) : Squirt(x, y, none, 1000, sw) {}
 GraphObject::Direction SuperSquirt::redirect() {
 	Direction dir = getDirection(); int l = -1;
 	Actor *target = getStudentWorld()->getFirstProtester();
@@ -412,6 +409,7 @@ int FrackMan::doSomething() {
 		case 'i': sonar += 20; break;
 		case 'o': gold += 20; break;
 		case 'h': health += 100; break;
+		case 'p': getStudentWorld()->drawPen15(); break;
 		///DEBUGGING: end HAX controls
 
 		case KEY_PRESS_ESCAPE: return Actor::PLAYER_DIED;
