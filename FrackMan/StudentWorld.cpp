@@ -107,6 +107,7 @@ int StudentWorld::move() {
 			actors.push_back(new WaterPool(x, y, max(100, 300 - 10 * getLevel()), this)); //adding waterpool
 		}
 	}
+
 	ticks++;
 	return GWSTATUS_CONTINUE_GAME;
 }
@@ -119,10 +120,9 @@ void StudentWorld::cleanUp() {
 		}
 	}
 	//deleting all actors
-	while (!actors.empty()) {
-		delete actors[0];
-		actors.erase(actors.begin());
-	}
+	for (int i = 0; i < actors.size(); i++) delete actors[i];
+	actors.clear();
+
 	//deleting frackman
 	delete frackman;
 
@@ -167,7 +167,7 @@ bool StudentWorld::collides(GraphObject *ob1, GraphObject *ob2, double radius) c
 }
 
 //function called by a BFSSearch to update its movable positions. Processed by StudentWorld to get positions of dirt and boulders
-void StudentWorld::updateMovable(bool movable[][64]) {
+void StudentWorld::updateMovable(bool movable[64][64]) {
 	for (int x = 0; x <= 60; x++) {
 		for (int y = 0; y <= 60; y++) {
 			bool open = true;
@@ -184,7 +184,11 @@ void StudentWorld::updateMovable(bool movable[][64]) {
 		if (actors[i]->getType() == Actor::BOULDER) {
 			for (int x = -4; x <= 4; x++) {
 				for (int y = -4; y <= 4; y++) {
-					if (x*x + y*y <= 9.0) movable[actors[i]->getX() + x][actors[i]->getY() + y] = false; //position is within boulder's hitbox
+					if (x*x + y*y <= 9.0) {
+						int nx = actors[i]->getX() + x, ny = actors[i]->getY() + y;
+						if(nx >= 0 && nx < 64 && ny >= 0 && ny < 64) //make sure position is within bounds of array
+							movable[nx][ny] = false; //position is within boulder's hitbox
+					}
 				}
 			}
 		}
