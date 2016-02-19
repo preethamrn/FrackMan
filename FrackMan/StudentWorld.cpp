@@ -104,8 +104,6 @@ int StudentWorld::move() {
 }
 
 void StudentWorld::cleanUp() {
-	delete search; //deleting search
-	
 	//deleting dirt
 	for (int i = 0; i < VIEW_WIDTH; i++) {
 		for (int j = 0; j < VIEW_HEIGHT; j++) {
@@ -113,12 +111,14 @@ void StudentWorld::cleanUp() {
 		}
 	}
 	//deleting all actors
-	for (int i = actors.size() - 1; i >= 0; i--) {
-		delete actors[i];
-		actors.erase(actors.begin() + i);
-	}
+	for (int i = 0; i < actors.size(); i++) delete actors[i];
+	actors.clear();
+
 	//deleting frackman
 	delete frackman;
+
+	//deleting search
+	delete search;
 }
 
 void StudentWorld::useSonar() {
@@ -172,11 +172,10 @@ void StudentWorld::updateMovable(bool movable[][64]) {
 		}
 	}
 	for (int i = 0; i < actors.size(); i++) {
-		Boulder *b = dynamic_cast<Boulder*>(actors[i]);
-		if (b != nullptr) {
+		if (actors[i]->getType() == Actor::BOULDER) {
 			for (int x = -4; x <= 4; x++) {
 				for (int y = -4; y <= 4; y++) {
-					if (x*x + y*y <= 9.0) movable[b->getX() + x][b->getY() + y] = false; //position is within boulder's hitbox
+					if (x*x + y*y <= 9.0) movable[actors[i]->getX() + x][actors[i]->getY() + y] = false; //position is within boulder's hitbox
 				}
 			}
 		}
@@ -322,9 +321,9 @@ void StudentWorld::addInitialActor(Actor::Type actorType) {
 			Actor *a = *it;
 			int dx = x - a->getX();
 			int dy = y - a->getY();
-			dist = fmin(dx*dx + dy*dy, dist*dist);
+			dist = fmin(dx*dx + dy*dy, dist);
 		}
-	} while (dist <= 6.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft 
+	} while (dist <= 36.0 || y >= 4 && x >= 27 && x <= 33); //check if not far enough from other objects or inside mineshaft 
 														   ///DEBUGGING (boulders spawn inside minshaft too?) - this doesn't
 
 	//create appropriate actor
