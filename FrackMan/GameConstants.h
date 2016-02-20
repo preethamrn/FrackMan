@@ -13,7 +13,8 @@ const int IID_DIRT			   = 6;
 const int IID_GOLD			   = 7;
 const int IID_SONAR			   = 8;
 const int IID_WATER_POOL	   = 9;
-
+const int IID_BLUE_PORTAL	   = 10;
+const int IID_ORANGE_PORTAL	   = 11;
 // sounds
 
 const int SOUND_THEME					= 0;

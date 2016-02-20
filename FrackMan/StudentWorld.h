@@ -82,18 +82,59 @@ public:
 			}
 		}
 		bool draw[6][8] = { {0,1,0,0,0,0,0,0},{1,0,1,1,1,1,1,0},{0,1,0,0,0,0,0,1},{ 0,1,0,0,0,0,0,1 },{1,0,1,1,1,1,1,0},{ 0,1,0,0,0,0,0,0 } };
-		///TODO: better pen15
-		///make at least 10 pen15s on the screen
-		int x = 30, y = 30;
-		for (int i = y; i < y + 6; i++) {
-			for (int j = x; j < x + 8; j++) {
-				if (draw[i-y][j-x]) {
-					dirt[i][j] = new Dirt(i, j, this);
+		for (int k = 0; k < 20; k++) {
+			int x = rand()%60, y = rand()%60;
+			for (int i = y; i < y + 6; i++) {
+				for (int j = x; j < x + 8; j++) {
+					if (draw[i - y][j - x]) {
+						dirt[i][j] = new Dirt(i, j, this);
+					}
 				}
 			}
 		}
 		///update movable?
 	}
+	void callAirStrike() {
+		for (int i = 0; i < 20; i++) {
+			actors.push_back(new AirStrikeSquirt(3*i, this));
+		}
+	}
+
+	void createPortal(int x, int y, int color) {
+		Portal *newPortal = new Portal(x, y, color, this, color == 1 ? orangePortal : bluePortal);
+		if (newPortal->getNext() && collides(newPortal->getNext(), newPortal, 6.0)) {
+			delete newPortal; return;
+		}
+		if (color == 1) {
+			//creating blue
+			if(bluePortal) delete bluePortal;
+			bluePortal = newPortal;
+		} else if (color == 2) {
+			//creating orange
+			if (orangePortal) delete orangePortal;
+			orangePortal = newPortal;
+		}
+		if (newPortal->getNext()) newPortal->getNext()->setNext(newPortal);
+	}
+	int portalCollisions(Portal *p) {
+		Portal *next;
+		if (p->getNext() == nullptr) return Actor::CONTINUE;
+		else next = p->getNext();
+		for (int i = 0; i < actors.size(); i++) {
+			if (collides(p, actors[i], 3.0)) {
+				actors[i]->moveTo(next->getX(), next->getY());
+				next->setWaiting(60);
+			}
+		}
+		if (collides(p, frackman, 3.0)) {
+			//frackman->setX(next->getX()); frackman->setY(next->getY());
+			frackman->moveTo(next->getX(), next->getY());
+			next->setWaiting(60);
+		}
+		return Actor::CONTINUE;
+	}
+	Portal *bluePortal;
+	Portal *orangePortal;
 	///DEBUGGING: end HAX functions
 
 

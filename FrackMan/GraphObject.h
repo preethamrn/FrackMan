@@ -59,8 +59,8 @@ class GraphObject
 	{
 		  // If already moved but not yet animated, use new location anyway.
 		return roundAwayFromZero(m_destY);
-	}
-
+	}	
+	
 	void moveTo(int x, int y)
 	{
 		m_destX = x;

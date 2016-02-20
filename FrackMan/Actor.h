@@ -50,7 +50,7 @@ private:
 class Actor : public GraphObject {
 public:
 	enum Return { PLAYER_DIED, SELF_DIED, PICKED_UP, LEVEL_SUCCESS, CONTINUE };
-	enum Type { DIRT, BOULDER, GOLDNUGGET, OILBARREL, SQUIRT, WATERPOOL, SONARKIT, REGPROTESTER, HCOREPROTESTER, DEADPROTESTER, FRACKMAN };
+	enum Type { PORTAL, DIRT, BOULDER, GOLDNUGGET, OILBARREL, SQUIRT, WATERPOOL, SONARKIT, REGPROTESTER, HCOREPROTESTER, DEADPROTESTER, FRACKMAN };
 
 	Actor(int ID, int x, int y, Direction dir, float size, int depth, Type type, StudentWorld *sw);
 	virtual ~Actor() = 0;
@@ -60,6 +60,20 @@ public:
 	
 private:
 	StudentWorld *sWorld; Type m_type;
+};
+
+//Portal
+class Portal : public Actor {
+public:
+	Portal(int x, int y, int c, StudentWorld *sw, Portal *p);
+	virtual ~Portal() {}
+	virtual int doSomething();
+	Portal* getNext() { return next; }
+	void setNext(Portal *p) { next = p; }
+	void setWaiting(int t) { waitingTicks = t; }
+private:
+	Portal *next;
+	int color, waitingTicks;
 };
 
 //Dirt
@@ -118,6 +132,15 @@ public:
 	virtual ~SuperSquirt() {}
 private:
 	virtual Direction redirect();
+};
+
+class AirStrikeSquirt : public Squirt {
+public:
+	AirStrikeSquirt(int x, StudentWorld *sw);
+	virtual ~AirStrikeSquirt() {}
+private:
+	virtual Direction redirect();
+	int dirtick;
 };
 
 //Goodie

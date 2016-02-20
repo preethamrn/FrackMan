@@ -1,6 +1,10 @@
 ///DEBUGGING///
 //YOU'RE IN HAX NOW
 //DON'T ADD IMPORTANT FUNCTIONALITY
+
+
+///TODO: portal hack (all actors can go through portal. BFS has to account for portals)
+/// 2-player hack, pen15 hack
 ///DEBUGGING///
 
 
@@ -15,6 +19,9 @@ GameWorld* createStudentWorld(std::string assetDir) {
 }
 
 int StudentWorld::init() {
+	bluePortal = nullptr;
+	orangePortal = nullptr;
+
 	search = new BFSSearch(this); //creating new search
 
 	//initializing dirt and open locations in search
@@ -52,6 +59,11 @@ int StudentWorld::move() {
 		"  Sonar: " + getSonarText() + 
 		"  Oil Left: " + getOilLeftText());
 	//setGameStatText(std::to_string(ticks)); ///DEBUGGING
+	
+	//make portals do something
+	if (bluePortal) bluePortal->doSomething();
+	if (orangePortal) orangePortal->doSomething();
+
 	int ret = frackman->doSomething();
 	if (ret == Actor::PLAYER_DIED) {
 		decLives();
@@ -128,6 +140,10 @@ void StudentWorld::cleanUp() {
 
 	//deleting search
 	delete search; 
+	
+	//delete portals
+	delete orangePortal;
+	delete bluePortal;
 }
 
 void StudentWorld::useSonar() {

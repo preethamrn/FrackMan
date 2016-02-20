@@ -48,7 +48,7 @@ void BFSSearch::update(int sx, int sy) {
 	while (!pointQueue.empty()) {
 		Point curr = pointQueue.front(); pointQueue.pop();
 		int x = curr.x(), y = curr.y();
-
+		///TODO: add portal logic here
 		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::none) {
 			//if the current point is reachable in a straight line and the point after is in the same direction then it is also reachable in a straight line
 			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::down)) straightLine[x][y + 1] = true;
@@ -89,6 +89,14 @@ void BFSSearch::updateMovable() {
 Actor::Actor(int ID, int x, int y, Direction dir, float size, int depth, Type type, StudentWorld *sw) : GraphObject(ID, x, y, dir, size, depth), sWorld(sw), m_type(type) {}
 inline Actor::~Actor() {}
 StudentWorld* Actor::getStudentWorld() { return sWorld; }
+
+//Portal functions
+Portal::Portal(int x, int y, int c, StudentWorld *sw, Portal *p) : Actor(c==1?IID_BLUE_PORTAL:c==2?IID_ORANGE_PORTAL:IID_DIRT, x, y, right, 1.0, 3, PORTAL, sw), next(p), color(c), waitingTicks(60) { setVisible(true); }
+int Portal::doSomething() {
+	if(!waitingTicks) return getStudentWorld()->portalCollisions(this);
+	else waitingTicks--;
+	return CONTINUE;
+}
 
 //Dirt functions
 Dirt::Dirt(int x, int y, StudentWorld *sw) : Actor(IID_DIRT, x, y, right, 0.25, 3, DIRT, sw) { setVisible(true); }
@@ -190,6 +198,15 @@ GraphObject::Direction SuperSquirt::redirect() {
 	Actor *target = getStudentWorld()->getFirstProtester();
 	if(target) getStudentWorld()->getSearch()->search(this, target->getX(), target->getY(), dir, l);
 	return dir;
+}
+
+//AirStrikeSquirt functions
+AirStrikeSquirt::AirStrikeSquirt(int x, StudentWorld *sw) : Squirt(x, 60, down, 1000, sw), dirtick(0) {}
+GraphObject::Direction AirStrikeSquirt::redirect() {
+	dirtick++;
+	if (dirtick % 10 == 0) return right;
+	else if (dirtick % 10 == 5) return down;
+	else return none;
 }
 
 //Goodie functions
@@ -393,22 +410,17 @@ int FrackMan::doSomething() {
 			break;
 
 		///DEBUGGING: HAX controls
-		case 'b': case 'B':
-			getStudentWorld()->goToOil();
-			break;
-		case 'n': case 'N':
-			return getStudentWorld()->nextLevel();
-			break;
-		case 'g': case 'G':
-			getStudentWorld()->superSquirt();
-			break;
-		case 'x': case 'X':
-			getStudentWorld()->superSonar();
-			break;
-		case 'u': water += 20; break;
-		case 'i': sonar += 20; break;
-		case 'o': gold += 20; break;
-		case 'h': health += 100; break;
+		case 'b': case 'B': getStudentWorld()->goToOil(); break;
+		case 'n': case 'N': return getStudentWorld()->nextLevel(); break;
+		case 'g': case 'G': getStudentWorld()->superSquirt(); break;
+		case 'x': case 'X': getStudentWorld()->superSonar(); break;
+		case 'y': case 'Y': getStudentWorld()->callAirStrike(); break;
+		case 'k': case 'K': getStudentWorld()->createPortal(getX(), getY(), 1); break; //create blue portal
+		case 'l': case 'L': getStudentWorld()->createPortal(getX(), getY(), 2); break; //create orange portal
+		case 'u': water = 99; break;
+		case 'i': sonar = 99; break;
+		case 'o': gold  = 99; break;
+		case 'h': health = 999; break;
 		case 'p': getStudentWorld()->drawPen15(); break;
 		///DEBUGGING: end HAX controls
 

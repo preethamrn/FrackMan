@@ -48,7 +48,7 @@ static const double FONT_SCALEDOWN = 760.0;
 static const double SCORE_Y = 3.8;
 static const double SCORE_Z = -10;
 
-static const int MS_PER_FRAME = 0;
+static const int MS_PER_FRAME = 1;
 
 static const double PI = 4 * atan(1.0);
 
@@ -89,6 +89,8 @@ void GameController::initDrawersAndSounds()
 		{ IID_BOULDER, 1, "rock2.tga" },
 		{ IID_BOULDER, 2, "rock3.tga" },
 		{ IID_BOULDER, 3, "rock4.tga" },
+		{ IID_BLUE_PORTAL, 0, "blueportal.tga" },
+		{ IID_ORANGE_PORTAL, 0, "orangeportal.tga" },
 	};
 
 	SoundMapType::value_type sounds[] = {
