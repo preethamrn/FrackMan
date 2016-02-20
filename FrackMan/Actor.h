@@ -220,6 +220,7 @@ private:
 class FrackMan : public Actor {
 public:
 	FrackMan(StudentWorld *sw);
+	FrackMan(FrackMan *f, int x, int y);
 	virtual ~FrackMan() {}
 	virtual int doSomething();
 

@@ -371,6 +371,9 @@ int DeadProtester::doSomething() {
 FrackMan::FrackMan(StudentWorld *sw) : Actor(IID_PLAYER, 30, 60, right, 1.0, 0, FRACKMAN, sw), health(10), water(5), sonar(1), gold(0) {
 	setVisible(true);
 }
+FrackMan::FrackMan(FrackMan *f, int x, int y) : Actor(IID_PLAYER, x, y, f->getDirection(), f->getSize(), 0, FRACKMAN, f->getStudentWorld()), health(f->getHealth()), water(f->getWater()), sonar(f->getSonar()), gold(f->getGold()) {
+	setVisible(true);
+}
 int FrackMan::doSomething() {
 	//check if collided with dirt
 	bool removedDirt = false;

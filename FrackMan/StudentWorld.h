@@ -127,7 +127,10 @@ public:
 			}
 		}
 		if (collides(p, frackman)) {
-			frackman->moveTo(next->getX(), next->getY());
+			FrackMan *tempF = new FrackMan(frackman, next->getX(), next->getY());
+			delete frackman;
+			frackman = tempF;
+			//frackman->moveTo(next->getX(), next->getY());
 			next->setWaiting(60);
 		}
 		return Actor::CONTINUE;
