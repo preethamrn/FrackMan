@@ -71,6 +71,7 @@ public:
 	Portal* getNext() { return next; }
 	void setNext(Portal *p) { next = p; }
 	void setWaiting(int t) { waitingTicks = t; }
+	bool isWaiting() { return waitingTicks; }
 private:
 	Portal *next;
 	int color, waitingTicks;

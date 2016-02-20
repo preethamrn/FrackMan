@@ -121,17 +121,19 @@ public:
 		if (p->getNext() == nullptr) return Actor::CONTINUE;
 		else next = p->getNext();
 		for (int i = 0; i < actors.size(); i++) {
-			if (collides(p, actors[i], 3.0)) {
+			if (collides(p, actors[i])) {
 				actors[i]->moveTo(next->getX(), next->getY());
 				next->setWaiting(60);
 			}
 		}
-		if (collides(p, frackman, 3.0)) {
-			//frackman->setX(next->getX()); frackman->setY(next->getY());
+		if (collides(p, frackman)) {
 			frackman->moveTo(next->getX(), next->getY());
 			next->setWaiting(60);
 		}
 		return Actor::CONTINUE;
+	}
+	bool collides(Portal *p, Actor *a) {
+		return p->getX() == a->getX() && p->getY() == a->getY();
 	}
 	Portal *bluePortal;
 	Portal *orangePortal;

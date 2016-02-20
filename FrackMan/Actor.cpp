@@ -44,11 +44,23 @@ void BFSSearch::update(int sx, int sy) {
 	shortestPathLength[sx][sy] = 0;
 	straightLine[sx][sy] = true;
 
+	int bpx = -1, bpy = -1, opx = -1, opy = -1;
+	if (sWorld->bluePortal && sWorld->orangePortal && !sWorld->bluePortal->isWaiting() && !sWorld->orangePortal->isWaiting()) {
+		bpx = sWorld->bluePortal->getX();
+		bpy = sWorld->bluePortal->getY(); 
+		opx = sWorld->orangePortal->getX();
+		opy = sWorld->orangePortal->getY();
+	}
+
 	//Queue based search for most optimal path
 	while (!pointQueue.empty()) {
 		Point curr = pointQueue.front(); pointQueue.pop();
 		int x = curr.x(), y = curr.y();
-		///TODO: add portal logic here
+		if (x == bpx && y == bpy) {
+			x = opx; y = opy;
+		} else if (x == opx && y == opy) {
+			x = bpx; y = bpy;
+		}
 		if (y < nCols - 1 && movable[x][y + 1] && shortestPathDirection[x][y + 1] == GraphObject::none) {
 			//if the current point is reachable in a straight line and the point after is in the same direction then it is also reachable in a straight line
 			if (straightLine[x][y] && (shortestPathDirection[x][y] == GraphObject::none || shortestPathDirection[x][y] == GraphObject::down)) straightLine[x][y + 1] = true;
