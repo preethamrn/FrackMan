@@ -3,8 +3,7 @@
 //DON'T ADD IMPORTANT FUNCTIONALITY
 
 
-///TODO: portal hack (all actors can go through portal. BFS has to account for portals)
-/// 2-player hack, pen15 hack
+///TODO: 2-player hack
 ///DEBUGGING///
 
 
